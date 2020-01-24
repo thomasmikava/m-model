@@ -8,6 +8,9 @@
     },
     {
       "path": "packages/m-model-joi"
+    },
+    {
+      "path": "packages/m-model-react"
     }
   ],
   "settings": {
