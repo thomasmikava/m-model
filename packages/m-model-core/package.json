@@ -1,0 +1,31 @@
+{
+  "name": "@m-model/core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+	"test": "echo \"Error: no test specified\" && exit 1",
+	"build": "tsc",
+    "prepare": "npm run build"
+  },
+  "repository": {
+	  "type": "git",
+	  "url": "git+https://github.com/thomasmikava/m-model.git"
+  },
+  "keywords": [],
+  "author": "Temuri Mikava",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.17.0",
+    "@typescript-eslint/parser": "^2.17.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.5"
+  },
+  "homepage": "https://github.com/thomasmikava/m-model.git",
+  "files": ["lib/**/*"]
+}
