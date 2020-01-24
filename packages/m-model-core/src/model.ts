@@ -30,6 +30,7 @@ import {
 	ModelInstance,
 	ModelInstanceWithoutDoc,
 	QueryOptions,
+	Query,
 } from "./model-types";
 import { defaultSpecialActionKeyOfOtherTabsActions } from "./storage";
 
@@ -131,6 +132,10 @@ function createModel<
 			}
 			return undefined;
 		}
+
+		static [modelSymbols.IdKey]: IdKey;
+		static [modelSymbols.IdType]: IdType;
+		static [modelSymbols.DocType]: DOC;
 
 		/* protected */ static dispatch = config.dispatch;
 		/* protected */ static subscribeStoreChange = config.subscribe;
@@ -237,7 +242,7 @@ function createModel<
 
 		static findOneSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			options?: QueryOptions<DOC>
 		): T | undefined {
 			const searchResult = (this as any).findManySync(query, options);
@@ -249,7 +254,7 @@ function createModel<
 
 		static deleteOneSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>
+			query: Query<DOC>
 		) {
 			const doc = (this as any).findOneSync(query) as DOC | undefined;
 			if (!doc) return;
@@ -258,7 +263,7 @@ function createModel<
 
 		static findManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			options?: QueryOptions<DOC>
 		): T[] {
 			const instances = config.getInstances();
@@ -427,7 +432,7 @@ function createModel<
 
 		static updateManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			newDoc: Partial<DOC>
 		) {
 			const documents = (this as any).findManySync(query);
@@ -444,7 +449,7 @@ function createModel<
 
 		static updateOneSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			newDoc: Partial<DOC>,
 			getRaw?: boolean
 		) {
@@ -485,7 +490,7 @@ function createModel<
 
 		static deleteManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			options?: QueryOptions<DOC>
 		) {
 			const docs = (this as any).findManySync(query, options) as DOC[];
@@ -562,7 +567,7 @@ function createModel<
 			T extends ModelInstance<DOC>
 		>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			options: QueryOptions<DOC> | undefined | null,
 			cb: (currentDoc: T | undefined) => void
 		): () => void {
@@ -605,7 +610,7 @@ function createModel<
 			T extends ModelInstance<DOC>
 		>(
 			this: ConstructorType<T>,
-			query: Partial<DOC>,
+			query: Query<DOC>,
 			options: QueryOptions<DOC> | undefined | null,
 			cb: (currentDoc: T[]) => void
 		): () => void {

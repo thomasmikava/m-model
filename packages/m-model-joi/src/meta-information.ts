@@ -1,4 +1,4 @@
-import { MetaInformation, IStorage } from "@m-model/common";
+import { MetaInformation, IStorage } from "m-model-common";
 import validateSchema from "./validate";
 
 export class JoiMetaInfo<DOC extends {}> extends MetaInformation<DOC> {

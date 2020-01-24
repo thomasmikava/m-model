@@ -1,7 +1,7 @@
 import {
 	defaultSpecialActionKeyOfOtherTabsActions,
 	defaultSpecialItemNameOfOtherTabsActions,
-} from "@m-model/core";
+} from "m-model-core";
 import { IStorageSettings } from "./storage";
 
 interface IReducersConfig<

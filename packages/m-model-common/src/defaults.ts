@@ -1,4 +1,4 @@
-import { ICRUDActionTypes, IModel } from "@m-model/core";
+import { ICRUDActionTypes, IModel, RawInstances } from "m-model-core";
 import { combineReducers } from "./combine-reducers";
 import { IStorage, IStorageSettings } from "./storage";
 
@@ -33,11 +33,12 @@ export const getDefaultCRUDActionTypes = (
 };
 
 export const getDefaultReducer = <
-	IState extends Record<string | number, Record<any, any> | undefined>,
+	ModelType extends IModel,
+	IState extends RawInstances<any, any, any> = RawInstances<any, any, any>,
 	IActions extends { type: string } = { type: string }
 >(
 	storageSettings: IStorageSettings,
-	getModel: () => IModel
+	getModel: () => ModelType
 ) => {
 	return combineReducers<IState, IActions>({
 		storageSettings,

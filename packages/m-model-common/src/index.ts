@@ -7,6 +7,7 @@ import {
 import {
 	MetaInformation,
 	listenToLocalStorageChange,
+	IMetaInfo,
 } from "./meta-information";
 import {
 	IStorageSettings,
@@ -28,4 +29,5 @@ export {
 	FakeStorage,
 	loadFromStorage,
 	filterByLoadTime,
+	IMetaInfo,
 };

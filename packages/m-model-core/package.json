@@ -1,6 +1,6 @@
 {
-  "name": "@m-model/core",
-  "version": "0.0.1",
+  "name": "m-model-core",
+  "version": "0.0.2",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -25,6 +25,9 @@
     "eslint-plugin-prettier": "^3.1.2",
     "prettier": "^1.19.1",
     "typescript": "^3.7.5"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "homepage": "https://github.com/thomasmikava/m-model.git",
   "files": [

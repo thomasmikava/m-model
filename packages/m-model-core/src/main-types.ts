@@ -60,8 +60,14 @@ export interface IModelConfig<
 
 const initialDoc = Symbol("initial");
 const isDeleted = Symbol("isDeleted");
+const IdKey = Symbol("IdKey");
+const IdType = Symbol("IdType");
+const DocType = Symbol("DocType");
 
 export const modelSymbols = {
 	initialDoc,
 	isDeleted,
+	IdKey,
+	IdType,
+	DocType,
 } as const;

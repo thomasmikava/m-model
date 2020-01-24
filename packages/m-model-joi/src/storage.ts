@@ -1,6 +1,6 @@
 import Joi from "@hapi/joi";
 import validateSchema from "./validate";
-import { IStoreInstances } from "@m-model/core";
+import { IStoreInstances } from "m-model-core";
 
 export function getStorageSchema(
 	pattern: "number" | "ObjectId" | RegExp,

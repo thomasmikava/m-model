@@ -1,6 +1,6 @@
 {
-  "name": "@m-model/joi",
-  "version": "0.0.1",
+  "name": "m-model-joi",
+  "version": "0.0.2",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -27,7 +27,12 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@hapi/joi": ">=16.0.0"
+    "@hapi/joi": ">=15.0.1",
+    "m-model-common": "^0.0.1",
+    "m-model-core": "^0.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "homepage": "https://github.com/thomasmikava/m-model.git",
   "files": [

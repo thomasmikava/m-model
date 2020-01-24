@@ -13,7 +13,16 @@ import {
 	modelSymbols,
 	IStoreInstances,
 } from "./main-types";
-import { ModelInstance, ModelClass, QueryOptions, IModel } from "./model-types";
+import {
+	ModelInstance,
+	ModelClass,
+	QueryOptions,
+	IModel,
+	Query,
+	ModelIdType,
+	ModelIdKey,
+	ModelDocType,
+} from "./model-types";
 import {
 	rawInstancesToArray,
 	defaultSpecialActionKeyOfOtherTabsActions,
@@ -34,6 +43,10 @@ export {
 	ModelInstance,
 	ModelClass,
 	IDocument,
+	Query,
+	ModelIdType,
+	ModelIdKey,
+	ModelDocType,
 	QueryOptions,
 	rawInstancesToArray,
 	IStoreInstances,

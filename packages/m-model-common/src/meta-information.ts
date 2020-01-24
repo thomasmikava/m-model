@@ -1,6 +1,13 @@
 import { IStorage } from "./storage";
 
-export class MetaInformation<DOC extends {}> {
+export interface IMetaInfo<DOC extends {}> {
+	setItem<K extends keyof DOC>(key: K, value: DOC[K]);
+	clearStorage(): void;
+	clearStorage(): void;
+	initialize(): DOC | null;
+}
+
+export class MetaInformation<DOC extends {}> implements IMetaInfo<DOC> {
 	public readonly data: Readonly<DOC>;
 	private readonly storage: IStorage;
 	private readonly storageKey: string;
@@ -48,7 +55,7 @@ export class MetaInformation<DOC extends {}> {
 export const listenToLocalStorageChange = (
 	storage: IStorage,
 	metaInformationName: string | null | undefined,
-	metaInformation: MetaInformation<any>
+	metaInformation: { initialize(): any }
 ) => {
 	if (!metaInformationName) return;
 	if (storage !== localStorage) return;

@@ -1,4 +1,4 @@
-import { IStoreInstances } from "@m-model/core";
+import { IStoreInstances } from "m-model-core";
 
 export interface IStorage {
 	getItem(key: string): null | string;

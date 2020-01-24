@@ -1,6 +1,6 @@
 {
-  "name": "@m-model/common",
-  "version": "0.0.1",
+  "name": "m-model-common",
+  "version": "0.0.3",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -26,8 +26,14 @@
     "prettier": "^1.19.1",
     "typescript": "^3.7.5"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://github.com/thomasmikava/m-model.git",
   "files": [
     "lib/**/*"
-  ]
+  ],
+  "dependencies": {
+    "m-model-core": "^0.0.1"
+  }
 }

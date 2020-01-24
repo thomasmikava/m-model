@@ -26,6 +26,10 @@ interface ModelClassGeneral<
 	DOC extends IDocument<IdKey, IdType>,
 	CRUDActions extends ICRUDActionTypes = ICRUDActionTypes
 > {
+	[modelSymbols.IdKey]: IdKey;
+	[modelSymbols.IdType]: IdType;
+	[modelSymbols.DocType]: DOC;
+
 	initialize(): {
 		data: IStoreInstances<DOC, {}>;
 		loadedAll: boolean;
@@ -75,30 +79,30 @@ interface ModelClassGeneral<
 
 	findOneSync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		options?: QueryOptions<DOC>
 	): T | undefined;
 
 	deleteOneSync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>
+		query: Query<DOC>
 	);
 
 	findManySync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		options?: QueryOptions<DOC>
 	): T[];
 
 	updateManySync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		newDoc: Partial<DOC>
 	);
 
 	updateOneSync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		newDoc: Partial<DOC>,
 		getRaw?: boolean
 	);
@@ -110,7 +114,7 @@ interface ModelClassGeneral<
 
 	deleteManySync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		options?: QueryOptions<DOC>
 	);
 
@@ -139,14 +143,14 @@ interface ModelClassGeneral<
 
 	subscribeOneDocChangeByQuery<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		options: QueryOptions<DOC> | undefined | null,
 		cb: (currentDoc: T | undefined) => void
 	): () => void;
 
 	subscribeManyDocsChangeByQuery<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, IdType, DOC, CRUDActions, T>,
-		query: Partial<DOC>,
+		query: Query<DOC>,
 		options: QueryOptions<DOC> | undefined | null,
 		cb: (currentDoc: T[]) => void
 	): () => void;
@@ -250,11 +254,22 @@ export interface ModelClassWithoutDoc<
 
 export type IModel = ModelClass<any, any, any, any>;
 
-export interface QueryOptions<DOC> {
+export type ModelIdType<
+	ModelType extends IModel
+> = ModelType[typeof modelSymbols["IdType"]];
+export type ModelIdKey<
+	ModelType extends IModel
+> = ModelType[typeof modelSymbols["IdKey"]];
+export type ModelDocType<
+	ModelType extends IModel
+> = ModelType[typeof modelSymbols["DocType"]];
+
+export interface QueryOptions<DOC extends {}> {
 	$hint?: any;
 	sort?: { [key in keyof DOC]: 1 | -1 };
 	raw?: boolean;
 }
+export type Query<DOC extends {}> = Partial<DOC>;
 
 export type ConstructorOf<
 	IdKey extends string,
