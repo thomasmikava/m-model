@@ -1,5 +1,4 @@
 import { IDocument, ICRUDActionTypes } from "./crud-actions";
-import { IStorageSettings } from "./storage";
 import { GetKeysOfType } from "./generics";
 
 export type IStoreDocInstance<T, O extends {} = {}> = {
@@ -49,10 +48,10 @@ export interface IModelConfig<
 		fields: (keyof DOC)[];
 		unique?: boolean;
 	}[];
-	storageSettings: Pick<
-		IStorageSettings,
-		"spreadActionsToOtherTabs" | "specialActionKeyOfOtherTabsActions"
-	>;
+	storageSettings: {
+		spreadActionsToOtherTabs?: boolean;
+		specialActionKeyOfOtherTabsActions?: string;
+	};
 	timestamps?: {
 		createdAt?: GetKeysOfType<DOC, Date>;
 		updatedAt?: GetKeysOfType<DOC, Date>;

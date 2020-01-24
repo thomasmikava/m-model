@@ -1,5 +1,5 @@
 {
-  "name": "@m-model/core",
+  "name": "@m-model/joi",
   "version": "0.0.1",
   "description": "",
   "main": "lib/index.js",
@@ -25,6 +25,9 @@
     "eslint-plugin-prettier": "^3.1.2",
     "prettier": "^1.19.1",
     "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@hapi/joi": ">=16.0.0"
   },
   "homepage": "https://github.com/thomasmikava/m-model.git",
   "files": [

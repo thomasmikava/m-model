@@ -11,15 +11,13 @@ import {
 	RawInstances,
 	IModelConfig,
 	modelSymbols,
+	IStoreInstances,
 } from "./main-types";
-import { ModelInstance, ModelClass, QueryOptions } from "./model-types";
+import { ModelInstance, ModelClass, QueryOptions, IModel } from "./model-types";
 import {
 	rawInstancesToArray,
-	FakeStorage,
-	IStorageSettings,
-	loadFromStorage,
-	filterByLoadTime,
-	IStorage,
+	defaultSpecialActionKeyOfOtherTabsActions,
+	defaultSpecialItemNameOfOtherTabsActions,
 } from "./storage";
 
 export {
@@ -38,9 +36,8 @@ export {
 	IDocument,
 	QueryOptions,
 	rawInstancesToArray,
-	FakeStorage,
-	IStorageSettings,
-	loadFromStorage,
-	filterByLoadTime,
-	IStorage,
+	IStoreInstances,
+	IModel,
+	defaultSpecialActionKeyOfOtherTabsActions,
+	defaultSpecialItemNameOfOtherTabsActions,
 };

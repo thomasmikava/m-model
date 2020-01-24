@@ -1,5 +1,5 @@
 {
-  "name": "@m-model/core",
+  "name": "@m-model/common",
   "version": "0.0.1",
   "description": "",
   "main": "lib/index.js",

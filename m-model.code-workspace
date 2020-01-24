@@ -2,6 +2,12 @@
   "folders": [
     {
       "path": "packages/m-model-core"
+    },
+    {
+      "path": "packages/m-model-common"
+    },
+    {
+      "path": "packages/m-model-joi"
     }
   ],
   "settings": {

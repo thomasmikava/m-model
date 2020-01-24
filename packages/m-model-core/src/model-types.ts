@@ -26,7 +26,10 @@ interface ModelClassGeneral<
 	DOC extends IDocument<IdKey, IdType>,
 	CRUDActions extends ICRUDActionTypes = ICRUDActionTypes
 > {
-	initialize: () => void;
+	initialize(): {
+		data: IStoreInstances<DOC, {}>;
+		loadedAll: boolean;
+	};
 
 	/* protected  */ dispatch: IModelConfig<
 		IdKey,
