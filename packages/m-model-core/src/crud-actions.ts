@@ -177,3 +177,21 @@ export interface ICRUDSyncActions<
 }
 
 export default createCRUDActions;
+
+export const createCRUDActionTypes = (
+	singularName: string,
+	pluralName?: string
+): ICRUDActionTypes => {
+	if (!pluralName) {
+		pluralName = singularName + "S";
+	}
+	return {
+		updateOne: `UPDATE_${singularName}`,
+		updateMany: `UPDATE_MANY_${pluralName}`,
+		loadOne: `LOAD_${singularName}`,
+		loadMany: `LOAD_MANY_${pluralName}`,
+		deleteOne: `DELETE_${singularName}`,
+		deleteMany: `DELETE_MANY_${pluralName}`,
+		clearAll: `CLEAR_${pluralName}`,
+	};
+};

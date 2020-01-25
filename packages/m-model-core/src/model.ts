@@ -36,12 +36,12 @@ function createModel<
 >(config: IModelConfig<IdKey, DOC, CRUDActions>): ModelClass<IdKey, DOC> {
 	const HowMany = Symbol();
 	const actions = createCRUDActions<IdKey, DOC, CRUDActions>(
-		config.syncronousCRUDActionTypes,
+		config.actionTypes,
 		config.keyOfId
 	);
 
 	const crudReducer = createCRUDReducer<IdKey, DOC, IStoreInstances<DOC>>(
-		config.syncronousCRUDActionTypes,
+		config.actionTypes,
 		config.keyOfId
 	);
 
@@ -135,6 +135,11 @@ function createModel<
 			: config.indices.map(() => ({} as IAnyObj));
 
 		static initialize() {
+			if (!config.loadInstancesFromStorage) {
+				throw new Error(
+					"loadInstancesFromStorage must be provided in order to call `initialize` method"
+				);
+			}
 			const info = config.loadInstancesFromStorage();
 			if (info.data) {
 				((this as any) as IModel).loadManyFromStorageSync(info.data);
@@ -948,7 +953,10 @@ function createModel<
 			action: AnyAction
 		): IStoreInstances<DOC> {
 			const newState = crudReducer(state, action as any);
-			if (!config.storageSettings.spreadActionsToOtherTabs) {
+			if (
+				!config.storageSettings ||
+				!config.storageSettings.spreadActionsToOtherTabs
+			) {
 				return newState;
 			}
 			const isActionOfAnotherTab =
@@ -958,7 +966,7 @@ function createModel<
 				] !== undefined;
 			if (isActionOfAnotherTab) {
 				const actionType = action.type as any;
-				if (actionType === config.syncronousCRUDActionTypes.loadOne) {
+				if (actionType === config.actionTypes.loadOne) {
 					const loadOneAction = action as ILoadOneAction<
 						IdKey,
 						DOC,
@@ -972,9 +980,7 @@ function createModel<
 						false,
 						state || {}
 					);
-				} else if (
-					actionType === config.syncronousCRUDActionTypes.loadMany
-				) {
+				} else if (actionType === config.actionTypes.loadMany) {
 					const loadManyAction = action as ILoadManyAction<
 						IdKey,
 						DOC,
@@ -989,9 +995,7 @@ function createModel<
 						false,
 						state || {}
 					);
-				} else if (
-					actionType === config.syncronousCRUDActionTypes.deleteOne
-				) {
+				} else if (actionType === config.actionTypes.deleteOne) {
 					const deleteAction = action as IDeleteOneAction<
 						IdKey,
 						IdType,
@@ -1002,21 +1006,15 @@ function createModel<
 						false,
 						state || {}
 					);
-				} else if (
-					actionType === config.syncronousCRUDActionTypes.deleteMany
-				) {
+				} else if (actionType === config.actionTypes.deleteMany) {
 					const deleteAction = action as IDeleteManyAction<
 						IdType,
 						CRUDActions["deleteMany"]
 					>;
 					this.deleteManyByIdsSync(deleteAction.ids, false);
-				} else if (
-					actionType === config.syncronousCRUDActionTypes.clearAll
-				) {
+				} else if (actionType === config.actionTypes.clearAll) {
 					this.clearAllSync(false);
-				} else if (
-					actionType === config.syncronousCRUDActionTypes.updateOne
-				) {
+				} else if (actionType === config.actionTypes.updateOne) {
 					const updateAction = action as IUpdateOneAction<
 						IdKey,
 						DOC,
@@ -1028,9 +1026,7 @@ function createModel<
 						false,
 						state || {}
 					);
-				} else if (
-					actionType === config.syncronousCRUDActionTypes.updateMany
-				) {
+				} else if (actionType === config.actionTypes.updateMany) {
 					const updateAction = action as IUpdateManyAction<
 						IdKey,
 						DOC,

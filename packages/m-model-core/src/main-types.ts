@@ -36,17 +36,17 @@ export interface IModelConfig<
 	getInstances: () => RawInstances<IdKey, DOC> | undefined;
 	dispatch: Dispatch<AnyAction>;
 	subscribe: (listener: () => void) => Unsubscribe;
-	loadInstancesFromStorage: () => {
+	loadInstancesFromStorage?: () => {
 		data: IStoreInstances<DOC>;
 		loadedAll: boolean;
 	};
-	syncronousCRUDActionTypes: CRUDActions;
+	actionTypes: CRUDActions;
 	dockeys: (keyof DOC)[];
 	indices?: readonly {
 		fields: (keyof DOC)[];
 		unique?: boolean;
 	}[];
-	storageSettings: {
+	storageSettings?: {
 		spreadActionsToOtherTabs?: boolean;
 		specialActionKeyOfOtherTabsActions?: string;
 	};

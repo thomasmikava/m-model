@@ -4,6 +4,7 @@ import createCRUDActions, {
 	ICRUDActionObjs,
 	ICRUDSyncActions,
 	IDocument,
+	createCRUDActionTypes,
 } from "./crud-actions";
 import createCRUDReducer from "./crud-reducer";
 import {
@@ -53,4 +54,5 @@ export {
 	IModel,
 	defaultSpecialActionKeyOfOtherTabsActions,
 	defaultSpecialItemNameOfOtherTabsActions,
+	createCRUDActionTypes,
 };

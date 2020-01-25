@@ -1,9 +1,5 @@
 import { combineReducers } from "./combine-reducers";
-import {
-	getDefaultStorageSettings,
-	getDefaultCRUDActionTypes,
-	getDefaultReducer,
-} from "./defaults";
+import { getDefaultStorageSettings, getDefaultReducer } from "./defaults";
 import {
 	MetaInformation,
 	listenToLocalStorageChange,
@@ -20,7 +16,6 @@ import {
 export {
 	combineReducers,
 	getDefaultStorageSettings,
-	getDefaultCRUDActionTypes,
 	getDefaultReducer,
 	MetaInformation,
 	listenToLocalStorageChange,
