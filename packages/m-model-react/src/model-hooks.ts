@@ -10,12 +10,23 @@ import {
 
 export function useModelDocById<ModelType extends IModel>(
 	Model: ModelType,
-	id: ModelIdType<ModelType> | null
-): InstanceType<ModelType> | null {
+	id: ModelIdType<ModelType> | null,
+	raw?: null
+): InstanceType<ModelType> | null;
+export function useModelDocById<ModelType extends IModel>(
+	Model: ModelType,
+	id: ModelIdType<ModelType> | null,
+	raw: "raw"
+): ModelDocType<ModelType> | null;
+export function useModelDocById<ModelType extends IModel>(
+	Model: ModelType,
+	id: ModelIdType<ModelType> | null,
+	raw?: null | "raw"
+): InstanceType<ModelType> | ModelDocType<ModelType> | null {
 	const mountingInfo = useMountingInfo();
 	const [resource, setResource] = useState<InstanceType<ModelType> | null>(
 		id && mountingInfo.isFirstMounting
-			? Model.findByIdSync(id) || null
+			? Model.findByIdSync(id, raw as null)
 			: null
 	);
 	const resourceRef = useRef(resource);
@@ -23,21 +34,25 @@ export function useModelDocById<ModelType extends IModel>(
 	useEffect(() => {
 		let isCancelled = false;
 		if (!id) {
-			if (resourceRef.current !== null) {
+			if (resourceRef.current) {
 				setResource(null);
 			}
 			return;
 		}
 		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const doc = Model.findByIdSync(id) || null;
+			const doc = Model.findByIdSync(id, raw as null);
 			if (resourceRef.current !== doc) {
 				setResource(doc);
 			}
 		}
 		const cancelSubscription = Model.subscribeChangeById(id, doc => {
 			if (isCancelled) return;
-			if (resourceRef.current !== (doc || null)) {
-				setResource(doc || null);
+			if (resourceRef.current !== doc) {
+				if (doc && raw === "raw") {
+					setResource(doc.toJSON());
+				} else {
+					setResource(doc);
+				}
 			}
 		});
 		return () => {
@@ -55,22 +70,20 @@ export function useModelDocByQuery<ModelType extends IModel>(
 ): InstanceType<ModelType> | null | undefined {
 	const mountingInfo = useMountingInfo();
 	const [resource, setResource] = useState<InstanceType<ModelType> | null>(
-		query && mountingInfo.isFirstMounting
-			? Model.findOneSync(query) || null
-			: null
+		query && mountingInfo.isFirstMounting ? Model.findOneSync(query) : null
 	);
 	const resourceRef = useRef(resource);
 	resourceRef.current = resource;
 	useEffect(() => {
 		let isCancelled = false;
 		if (!query) {
-			if (resourceRef.current !== undefined) {
+			if (resourceRef.current) {
 				setResource(null);
 			}
 			return;
 		}
 		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const doc = Model.findOneSync(query, queryOptions) || null;
+			const doc = Model.findOneSync(query, queryOptions);
 			if (resourceRef.current !== doc) {
 				setResource(doc);
 			}
@@ -80,8 +93,8 @@ export function useModelDocByQuery<ModelType extends IModel>(
 			queryOptions,
 			doc => {
 				if (isCancelled) return;
-				if (resourceRef.current !== (doc || null)) {
-					setResource(doc || null);
+				if (resourceRef.current !== doc) {
+					setResource(doc);
 				}
 			}
 		);
@@ -103,7 +116,7 @@ export function useModelDocsByQuery<ModelType extends IModel>(
 		InstanceType<ModelType>[] | null
 	>(
 		query && mountingInfo.isFirstMounting
-			? Model.findManySync(query, queryOptions) || null
+			? Model.findManySync(query, queryOptions)
 			: null
 	);
 	const resourceRef = useRef(resources);
@@ -111,7 +124,7 @@ export function useModelDocsByQuery<ModelType extends IModel>(
 	useEffect(() => {
 		let isCancelled = false;
 		if (!query) {
-			if (resourceRef.current !== undefined) {
+			if (resourceRef.current) {
 				setResources(null);
 			}
 			return;
@@ -135,18 +148,27 @@ export function useModelDocsByQuery<ModelType extends IModel>(
 	}, [Model, mountingInfo, query, queryOptions]);
 	return !query ? null : resources;
 }
-
 export function useModelDocsByIds<ModelType extends IModel>(
 	Model: ModelType,
 	ids: ModelIdType<ModelType>[] | null,
-	raw?: boolean
-): InstanceType<ModelType>[] | null {
+	raw?: null | "raw"
+): InstanceType<ModelType>[] | null;
+export function useModelDocsByIds<ModelType extends IModel>(
+	Model: ModelType,
+	ids: ModelIdType<ModelType>[] | null,
+	raw: "raw"
+): ModelDocType<ModelType>[] | null;
+export function useModelDocsByIds<ModelType extends IModel>(
+	Model: ModelType,
+	ids: ModelIdType<ModelType>[] | null,
+	raw?: null | "raw"
+): InstanceType<ModelType>[] | ModelDocType<ModelType>[] | null {
 	const mountingInfo = useMountingInfo();
 	const [resources, setResources] = useState<
 		InstanceType<ModelType>[] | null
 	>(
 		ids && mountingInfo.isFirstMounting
-			? Model.findManyByIdsSync(ids, raw as false) || null
+			? Model.findManyByIdsSync(ids, raw as null)
 			: null
 	);
 	const resourceRef = useRef(resources);
@@ -154,18 +176,18 @@ export function useModelDocsByIds<ModelType extends IModel>(
 	useEffect(() => {
 		let isCancelled = false;
 		if (!ids) {
-			if (resourceRef.current !== undefined) {
+			if (resourceRef.current) {
 				setResources(null);
 			}
 			return;
 		}
 		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const docs = Model.findManyByIdsSync(ids, raw as false);
+			const docs = Model.findManyByIdsSync(ids, raw as null);
 			setResources(docs);
 		}
 		const cancelSubscription = Model.subscribeManyDocsChangeByIds(
 			ids,
-			raw as false,
+			raw as null,
 			docs => {
 				if (isCancelled) return;
 				setResources(docs);
@@ -183,22 +205,28 @@ const emptyArr: any[] = [];
 
 export function useModelDocs<ModelType extends IModel>(
 	Model: ModelType,
-	raw?: boolean
-): InstanceType<ModelType>[] {
+	raw?: null
+): InstanceType<ModelType>[];
+export function useModelDocs<ModelType extends IModel>(
+	Model: ModelType,
+	raw: "raw"
+): ModelDocType<ModelType>[];
+export function useModelDocs<ModelType extends IModel>(
+	Model: ModelType,
+	raw?: null | "raw"
+): InstanceType<ModelType>[] | ModelDocType<ModelType>[] {
 	const mountingInfo = useMountingInfo();
 	const [resources, setResources] = useState<InstanceType<ModelType>[]>(
-		mountingInfo.isFirstMounting ? Model.getAllSync(raw as false) : emptyArr
+		mountingInfo.isFirstMounting ? Model.getAllSync(raw as null) : emptyArr
 	);
-	const isMountedRef = useRef(false);
 	useEffect(() => {
 		let isCancelled = false;
-		if (isMountedRef.current) {
-			setResources(Model.getAllSync(raw as false));
+		if (mountingInfo.hasFinishedFirstMountingCycle) {
+			setResources(Model.getAllSync(raw as null));
 		}
-		isMountedRef.current = true;
 		const cancelSubscription = Model.subscribeChange(() => {
 			if (isCancelled) return;
-			setResources(Model.getAllSync(raw as false));
+			setResources(Model.getAllSync(raw as null));
 		});
 		return () => {
 			isCancelled = true;

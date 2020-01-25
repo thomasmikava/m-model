@@ -17,12 +17,7 @@ import {
 	modelSymbols,
 	RawInstances,
 } from "./main-types";
-import {
-	IAnyObj,
-	NotUndefined,
-	OptionalKeys,
-	OptionalKeysOtherThan,
-} from "./generics";
+import { IAnyObj, OptionalKeys, OptionalKeysOtherThan } from "./generics";
 import {
 	ConstructorOf,
 	ModelClass,
@@ -36,40 +31,34 @@ import { defaultSpecialActionKeyOfOtherTabsActions } from "./storage";
 
 function createModel<
 	IdKey extends string,
-	IdType extends string | number,
-	DOC extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	CRUDActions extends ICRUDActionTypes = ICRUDActionTypes
->(
-	config: IModelConfig<IdKey, IdType, DOC, CRUDActions>
-): ModelClass<IdKey, IdType, DOC> {
+>(config: IModelConfig<IdKey, DOC, CRUDActions>): ModelClass<IdKey, DOC> {
 	const HowMany = Symbol();
-	const actions = createCRUDActions<IdKey, IdType, DOC, CRUDActions>(
+	const actions = createCRUDActions<IdKey, DOC, CRUDActions>(
 		config.syncronousCRUDActionTypes,
 		config.keyOfId
 	);
 
-	const crudReducer = createCRUDReducer<
-		IdKey,
-		IdType,
-		DOC,
-		IStoreInstances<DOC>
-	>(config.syncronousCRUDActionTypes, config.keyOfId);
+	const crudReducer = createCRUDReducer<IdKey, DOC, IStoreInstances<DOC>>(
+		config.syncronousCRUDActionTypes,
+		config.keyOfId
+	);
 
 	type ConstructorType<T extends ModelInstance<DOC>> = ConstructorOf<
 		IdKey,
-		IdType,
 		DOC,
 		CRUDActions,
 		T
 	>;
 
-	type IModel = ModelClass<IdKey, IdType, DOC, CRUDActions>;
-	type ModelWithoutDoc = ModelClassWithoutDoc<
-		IdKey,
-		IdType,
-		DOC,
-		CRUDActions
-	>;
+	type IdType = DOC[IdKey];
+
+	type IModel = ModelClass<IdKey, DOC, CRUDActions>;
+	type ModelWithoutDoc = ModelClassWithoutDoc<IdKey, DOC, CRUDActions>;
+
+	const empty = null;
+	type empty = typeof empty;
 
 	const ModelClass: ModelWithoutDoc = class Model
 		implements ModelInstanceWithoutDoc<DOC> {
@@ -85,7 +74,7 @@ function createModel<
 		}
 
 		saveSync() {
-			if (this[config.keyOfId as any] === undefined) {
+			if (!this[config.keyOfId as any]) {
 				throw new Error(
 					`document must have ${config.keyOfId} in order to be saved`
 				);
@@ -95,15 +84,15 @@ function createModel<
 				const instance = instances[this[config.keyOfId as any]];
 				if (instance) {
 					(this.constructor as typeof Model).updateByDocSync(
-						this.toJSON()
+						this.toObject()
 					);
 					return;
 				}
 			}
-			(this.constructor as IModel).loadOneSync(this.toJSON());
+			(this.constructor as IModel).loadOneSync(this.toObject());
 		}
 
-		toJSON(): DOC {
+		toObject(): DOC {
 			const obj = {} as DOC;
 			for (const key of config.dockeys) {
 				obj[key] = this[key as any];
@@ -124,13 +113,13 @@ function createModel<
 			return undefined;
 		}
 
-		getFullDoc(): IStoreDocInstance<DOC> | undefined {
+		getFullDoc(): IStoreDocInstance<DOC> | empty {
 			const instances = config.getInstances();
 			if (instances) {
 				const instance = instances[this[config.keyOfId as any]];
-				return instance;
+				return instance || empty;
 			}
-			return undefined;
+			return empty;
 		}
 
 		static [modelSymbols.IdKey]: IdKey;
@@ -182,23 +171,23 @@ function createModel<
 		static findByIdSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			id: IdType,
-			raw?: false
-		): T | undefined;
+			raw?: null
+		): T | empty;
 		static findByIdSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			id: IdType,
-			raw: true
-		): DOC | undefined;
+			raw: "raw"
+		): DOC | empty;
 		static findByIdSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			id: IdType,
-			raw = false
-		): T | DOC | undefined {
+			raw: null | "raw" = null
+		): T | DOC | empty {
 			const instances = config.getInstances();
-			if (!instances) return undefined;
+			if (!instances) return empty;
 			const instance = instances[id];
 			if (!instance) {
-				return undefined;
+				return empty;
 			}
 			if (raw) {
 				return instance.info;
@@ -209,17 +198,17 @@ function createModel<
 		static findManyByIdsSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			ids: IdType[],
-			raw?: false
+			raw?: null
 		): T[];
 		static findManyByIdsSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			ids: IdType[],
-			raw: true
+			raw: "raw"
 		): DOC[];
 		static findManyByIdsSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			ids: IdType[],
-			raw = false
+			raw: null | "raw" = null
 		): T[] | DOC[] {
 			const instances = config.getInstances();
 			if (!instances) return [];
@@ -244,10 +233,10 @@ function createModel<
 			this: ConstructorType<T>,
 			query: Query<DOC>,
 			options?: QueryOptions<DOC>
-		): T | undefined {
-			const searchResult = (this as any).findManySync(query, options);
+		): T | empty {
+			const searchResult = this.findManySync(query, options);
 			if (searchResult.length === 0) {
-				return undefined;
+				return empty;
 			}
 			return searchResult[0];
 		}
@@ -256,9 +245,9 @@ function createModel<
 			this: ConstructorType<T>,
 			query: Query<DOC>
 		) {
-			const doc = (this as any).findOneSync(query) as DOC | undefined;
+			const doc = this.findOneSync(query) as DOC | empty;
 			if (!doc) return;
-			(this as any).deleteByIdSync(doc[config.keyOfId]);
+			this.deleteByIdSync(doc[config.keyOfId]);
 		}
 
 		static findManySync<T extends ModelInstance<DOC>>(
@@ -274,7 +263,7 @@ function createModel<
 			if (!instances || idsOfInstances.length === 0) {
 				return [];
 			}
-			if (query[config.keyOfId] !== undefined) {
+			if (query[config.keyOfId]) {
 				idsOfInstances = [query[config.keyOfId]!];
 			} else if (config.indices) {
 				let bestIndex = options && options.$hint;
@@ -283,7 +272,7 @@ function createModel<
 						searchCount: Infinity,
 						index: undefined as
 							| undefined
-							| NotUndefined<typeof config["indices"]>[number],
+							| NonNullable<typeof config["indices"]>[number],
 						indexIndex: -1,
 					};
 					let i = -1;
@@ -400,13 +389,13 @@ function createModel<
 			docs: OptionalKeysOtherThan<DOC, IdKey>[],
 			extras?: IAnyObj[],
 			dispatchAction = true,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		) {
 			if (!instances) instances = config.getInstances();
 			if (!instances) return;
 			const documents: OptionalKeysOtherThan<DOC, IdKey>[] = [];
 			for (const doc of docs) {
-				let oldInstance: DOC | undefined;
+				let oldInstance: DOC | empty = empty;
 				const document =
 					config.timestamps && config.timestamps.updatedAt
 						? { ...doc, [config.timestamps.updatedAt]: new Date() }
@@ -433,51 +422,75 @@ function createModel<
 		static updateManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			query: Query<DOC>,
-			newDoc: Partial<DOC>
-		) {
-			const documents = (this as any).findManySync(query);
+			newDoc: Partial<DOC>,
+			raw?: null
+		): T[];
+		static updateManySync<T extends ModelInstance<DOC>>(
+			this: ConstructorType<T>,
+			query: Query<DOC>,
+			newDoc: Partial<DOC>,
+			raw: "raw"
+		): DOC[];
+		static updateManySync<T extends ModelInstance<DOC>>(
+			this: ConstructorType<T>,
+			query: Query<DOC>,
+			newDoc: Partial<DOC>,
+			raw?: null | "raw"
+		): T[] | DOC[] {
+			const documents = this.findManySync(query);
 
-			const docs: OptionalKeysOtherThan<DOC, IdKey>[] = [];
+			const docs: T[] = [];
 			for (const doc of documents) {
-				docs.push({
-					[config.keyOfId]: doc[config.keyOfId],
-					...newDoc,
-				} as OptionalKeysOtherThan<DOC, IdKey>);
+				for (const key in newDoc) {
+					doc[key as any] = newDoc[key];
+				}
 			}
-			(this as any).updateManyByDocsSync(docs);
+			const rawDocs = docs.map(e => e.toObject());
+			((this as any) as typeof Model).updateManyByDocsSync(rawDocs);
+			if (raw) return rawDocs;
+			return docs;
 		}
 
 		static updateOneSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			query: Query<DOC>,
 			newDoc: Partial<DOC>,
-			getRaw?: boolean
-		) {
-			const document = (this as any).findOneSync(
-				query,
-				undefined,
-				true
-			) as T | undefined;
+			raw?: null
+		): T | null;
+		static updateOneSync<T extends ModelInstance<DOC>>(
+			this: ConstructorType<T>,
+			query: Query<DOC>,
+			newDoc: Partial<DOC>,
+			raw: "raw"
+		): DOC | null;
+		static updateOneSync<T extends ModelInstance<DOC>>(
+			this: ConstructorType<T>,
+			query: Query<DOC>,
+			newDoc: Partial<DOC>,
+			raw?: null | "raw"
+		): T | DOC | null {
+			const document = this.findOneSync(query);
 			if (!document) {
-				return;
+				return null;
 			}
 			for (const key in newDoc) {
 				document[key as any] = newDoc[key];
 			}
 			document.saveSync();
-			if (getRaw) {
-				return document.toJSON();
+			if (raw) {
+				return document.toObject();
 			}
 			return document;
 		}
 
 		static deleteManyByIdsSync<T extends ModelInstance<DOC>>(
+			this: ConstructorType<T>,
 			ids: IdType[],
 			dispatchAction = true
 		) {
-			const documents = (this as any).findManyByIdsSync(ids) as DOC[];
+			const documents = this.findManyByIdsSync(ids, "raw");
 			for (const doc of documents) {
-				(this as any).updateIndices(doc, false);
+				((this as any) as typeof Model).updateIndices(doc, false);
 			}
 			if (dispatchAction) {
 				this.dispatch(
@@ -493,14 +506,14 @@ function createModel<
 			query: Query<DOC>,
 			options?: QueryOptions<DOC>
 		) {
-			const docs = (this as any).findManySync(query, options) as DOC[];
+			const docs = this.findManySync(query, options);
 			if (!docs.length) return;
-			(this as any).deleteManyByIdsSync(docs.map(e => e[config.keyOfId]));
+			this.deleteManyByIdsSync(docs.map(e => e[config.keyOfId]));
 		}
 
 		static getStoreRawInstancesObj<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>
-		): RawInstances<IdKey, IdType, DOC> {
+		): RawInstances<IdKey, DOC> {
 			const instances = config.getInstances();
 			return instances!;
 		}
@@ -518,15 +531,15 @@ function createModel<
 
 		static getAllSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			raw?: false
+			raw?: null
 		): T[];
 		static getAllSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			raw: true
+			raw: "raw"
 		): DOC[];
 		static getAllSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
-			raw = false
+			raw: null | "raw" = null
 		): T[] | DOC[] {
 			const instances = config.getInstances();
 			if (!instances) return [];
@@ -543,12 +556,12 @@ function createModel<
 		public static subscribeChangeById<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			id: IdType,
-			cb: (currentDoc: T | undefined) => void
+			cb: (currentDoc: T | empty) => void
 		): () => void {
 			let lastInstances = config.getInstances();
 			let lastInstance =
 				lastInstances && lastInstances[id] && lastInstances[id]!.info;
-			return ((this as any) as typeof Model).subscribeStoreChange(() => {
+			return this.subscribeStoreChange(() => {
 				const currentInstances = config.getInstances();
 				if (currentInstances === lastInstances) return;
 				const currentInstance =
@@ -558,7 +571,7 @@ function createModel<
 				if (lastInstance !== currentInstance) {
 					lastInstance = currentInstance;
 					lastInstances = currentInstances;
-					cb(currentInstance ? new this(currentInstance) : undefined);
+					cb(currentInstance ? new this(currentInstance) : empty);
 				}
 			});
 		}
@@ -569,38 +582,35 @@ function createModel<
 			this: ConstructorType<T>,
 			query: Query<DOC>,
 			options: QueryOptions<DOC> | undefined | null,
-			cb: (currentDoc: T | undefined) => void
+			cb: (currentDoc: T | empty) => void
 		): () => void {
-			const that = (this as any) as IModel;
 			let lastInstances = config.getInstances();
 			const getRaw = !!options && !!options.raw;
 			const newOptions = { ...(options || {}), raw: true };
-			let lastInstance = (that.findOneSync(
-				query,
-				newOptions
-			) as any) as DOC;
-			return that.subscribeStoreChange(() => {
+			let lastInstance = this.findOneSync(query, newOptions) as
+				| DOC
+				| empty;
+			return this.subscribeStoreChange(() => {
 				const currentInstances = config.getInstances();
 				if (currentInstances === lastInstances) return;
 				if (!currentInstances) {
-					if (lastInstance !== undefined) {
-						cb(undefined);
+					if (lastInstance) {
+						cb(empty);
 					}
 					return;
 				}
-				const currentInstance = (that.findOneSync(
-					query,
-					newOptions
-				) as any) as DOC;
+				const currentInstance = this.findOneSync(query, newOptions) as
+					| DOC
+					| empty;
 				if (lastInstance !== currentInstance) {
 					lastInstance = currentInstance;
 					lastInstances = currentInstances;
 					cb(
 						currentInstance
 							? getRaw
-								? ((currentInstance as any) as T)
-								: ((new this(currentInstance) as any) as T)
-							: undefined
+								? (currentInstance as T)
+								: new this(currentInstance)
+							: empty
 					);
 				}
 			});
@@ -614,21 +624,20 @@ function createModel<
 			options: QueryOptions<DOC> | undefined | null,
 			cb: (currentDoc: T[]) => void
 		): () => void {
-			const that = (this as any) as IModel;
 			const getRaw = !!options && !!options.raw;
 			const newOptions = { ...(options || {}), raw: true };
 			let lastInstances = config.getInstances();
-			let lastFoundInstances = (that.findManySync(
+			let lastFoundInstances = this.findManySync(
 				query,
 				newOptions
-			) as any) as DOC[];
-			return ((this as any) as typeof Model).subscribeStoreChange(() => {
+			) as DOC[];
+			return this.subscribeStoreChange(() => {
 				const currentInstances = config.getInstances();
 				if (currentInstances === lastInstances) return;
-				const currentFoundInstances = (that.findManySync(
+				const currentFoundInstances = this.findManySync(
 					query,
 					newOptions
-				) as any) as DOC[];
+				) as DOC[];
 				let areSame =
 					lastFoundInstances.length === currentFoundInstances.length;
 				if (areSame) {
@@ -646,8 +655,8 @@ function createModel<
 					lastInstances = currentInstances;
 					cb(
 						getRaw
-							? ((currentFoundInstances as any) as T[])
-							: currentFoundInstances.map(e => new this(e) as T)
+							? (currentFoundInstances as T[])
+							: currentFoundInstances.map(e => new this(e))
 					);
 				}
 			});
@@ -658,7 +667,7 @@ function createModel<
 		>(
 			this: ConstructorType<T>,
 			ids: IdType[],
-			raw: false,
+			raw: null | undefined,
 			cb: (currentDoc: T[]) => void
 		): () => void;
 		public static subscribeManyDocsChangeByIds<
@@ -666,7 +675,7 @@ function createModel<
 		>(
 			this: ConstructorType<T>,
 			ids: IdType[],
-			raw: true,
+			raw: "raw",
 			cb: (currentDoc: DOC[]) => void
 		): () => void;
 		public static subscribeManyDocsChangeByIds<
@@ -674,22 +683,18 @@ function createModel<
 		>(
 			this: ConstructorType<T>,
 			ids: IdType[],
-			raw: boolean,
+			raw: null | undefined | "raw",
 			cb: (currentDoc: T[] | DOC[]) => void
 		): () => void {
-			const that = (this as any) as IModel;
 			let lastInstances = config.getInstances();
-			let lastFoundInstances = that.findManyByIdsSync(
-				ids,
-				raw as true
-			) as DOC[];
-			return ((this as any) as typeof Model).subscribeStoreChange(() => {
+			let lastFoundInstances = this.findManyByIdsSync(ids, "raw");
+			return this.subscribeStoreChange(() => {
 				const currentInstances = config.getInstances();
 				if (currentInstances === lastInstances) return;
-				const currentFoundInstances = that.findManyByIdsSync(
+				const currentFoundInstances = this.findManyByIdsSync(
 					ids,
-					raw as true
-				) as DOC[];
+					"raw"
+				);
 				let areSame =
 					lastFoundInstances.length === currentFoundInstances.length;
 				if (areSame) {
@@ -708,7 +713,7 @@ function createModel<
 					cb(
 						raw
 							? currentFoundInstances
-							: currentFoundInstances.map(e => new this(e) as T)
+							: currentFoundInstances.map(e => new this(e))
 					);
 				}
 			});
@@ -716,7 +721,7 @@ function createModel<
 
 		public static subscribeChange(cb: () => void): () => void {
 			const lastInstances = config.getInstances();
-			return ((this as any) as typeof Model).subscribeStoreChange(() => {
+			return this.subscribeStoreChange(() => {
 				const currentInstances = config.getInstances();
 				if (currentInstances === lastInstances) return;
 				cb();
@@ -727,14 +732,14 @@ function createModel<
 			doc: OptionalKeysOtherThan<DOC, IdKey>,
 			extra?: IAnyObj,
 			dispatchAction = true,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		) {
 			if (!instances) instances = config.getInstances();
 			const document =
 				config.timestamps && config.timestamps.updatedAt
 					? { ...doc, [config.timestamps.updatedAt]: new Date() }
 					: doc;
-			let oldInstance: DOC | undefined;
+			let oldInstance: DOC | empty = empty;
 			if (instances && instances[document[config.keyOfId]]) {
 				oldInstance = instances[document[config.keyOfId]]!.info;
 				this.updateIndices(oldInstance, false);
@@ -763,11 +768,14 @@ function createModel<
 			this: ConstructorType<T>,
 			id: IdType,
 			dispatchAction = true,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		) {
 			if (!instances) instances = config.getInstances();
 			if (instances && instances[id]) {
-				(this as any).updateIndices(instances[id]!.info, false);
+				((this as any) as typeof Model).updateIndices(
+					instances[id]!.info,
+					false
+				);
 			}
 			if (dispatchAction) {
 				this.dispatch(this.syncronousCrudActions.deleteOne(id));
@@ -779,34 +787,36 @@ function createModel<
 			doc: DOC,
 			loadTime?: Date,
 			extra?: IAnyObj,
-			raw?: false,
+			raw?: null,
 			dispatchAction?: boolean,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		): T;
 		static loadOneSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			doc: DOC,
 			loadTime: Date | undefined,
 			extra: IAnyObj | undefined,
-			raw: true,
+			raw: "raw",
 			dispatchAction?: boolean,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		): DOC;
 		static loadOneSync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			doc: DOC,
 			loadTime?: Date,
 			extra?: IAnyObj,
-			raw = false,
+			raw: null | "raw" = null,
 			dispatchAction = true,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		): T | DOC {
 			if (!instances) instances = config.getInstances();
 			let exists = false;
 			if (instances && instances[doc[config.keyOfId]]) {
 				exists = true;
 			}
-			const document = (this as any).addTimestampsToDoc(doc) as DOC;
+			const document = ((this as any) as typeof Model).addTimestampsToDoc(
+				doc
+			) as DOC;
 			if (exists) {
 				((this as any) as typeof Model).updateByDocSync(
 					document,
@@ -833,53 +843,73 @@ function createModel<
 		static loadManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			docs: DOC[],
-			clearOthers?: boolean,
+			clearOthers?: null | "replaceAll" | Query<DOC> | IdType[],
 			loadTime?: Date,
 			extras?: IAnyObj[],
-			raw?: false,
+			raw?: null,
 			dispatchAction?: boolean,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		): T[];
 		static loadManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			docs: DOC[],
-			clearOthers: boolean | undefined,
+			clearOthers:
+				| null
+				| "replaceAll"
+				| Query<DOC>
+				| IdType[]
+				| undefined,
 			loadTime: Date | undefined,
 			extras: IAnyObj[] | undefined,
-			raw: true,
+			raw: "raw",
 			dispatchAction?: boolean,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		): DOC[];
 		static loadManySync<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			docs: DOC[],
-			clearOthers?: boolean,
+			clearOthers?: null | "replaceAll" | Query<DOC> | IdType[],
 			loadTime?: Date,
 			extras?: IAnyObj[],
-			raw?: boolean,
+			raw?: null | undefined | "raw",
 			dispatchAction = true,
-			instances?: RawInstances<IdKey, IdType, DOC>
+			instances?: RawInstances<IdKey, DOC>
 		): T[] | DOC[] {
-			if (clearOthers) {
-				(this as any).clearAllSync(false);
+			let docIds = null as null | IdType[];
+			if (clearOthers === "replaceAll") {
+				this.clearAllSync(false);
+			} else if (Array.isArray(clearOthers)) {
+				docIds = clearOthers;
+			} else if (clearOthers) {
+				const docsToDelete = this.findManySync(clearOthers, {
+					raw: true,
+				});
+				docIds = docsToDelete.map(e => e[config.keyOfId]);
 			}
+			if (docIds) {
+				this.deleteManyByIdsSync(docIds, false);
+			}
+
 			const docsuments: T[] | DOC[] = [];
 			for (let i = 0; i < docs.length; ++i) {
-				const doc = (this as any).loadOneSync(
+				const doc = this.loadOneSync(
 					docs[i],
 					loadTime,
 					extras ? extras[i] : undefined,
-					raw as true,
+					raw as "raw",
 					false,
 					instances
 				);
-				(docsuments as DOC[]).push(doc as DOC);
+				(docsuments as DOC[]).push(doc);
 			}
+
 			if (dispatchAction) {
 				this.dispatch(
 					this.syncronousCrudActions.loadMany(
 						docs,
-						clearOthers,
+						!clearOthers || clearOthers === "replaceAll"
+							? clearOthers
+							: docIds!,
 						loadTime,
 						extras
 					)
@@ -899,12 +929,12 @@ function createModel<
 				const { info, ...rest } = obj[key]!;
 				docs.push(info);
 				extras.push(rest);
-				(this as any).updateIndices(info, true);
+				((this as any) as typeof Model).updateIndices(info, true);
 			}
 			this.dispatch(
 				this.syncronousCrudActions.loadMany(
 					docs,
-					false,
+					null,
 					undefined,
 					extras
 				)
@@ -931,15 +961,14 @@ function createModel<
 				if (actionType === config.syncronousCRUDActionTypes.loadOne) {
 					const loadOneAction = action as ILoadOneAction<
 						IdKey,
-						IdType,
 						DOC,
 						CRUDActions["loadOne"]
 					>;
-					((this as any) as IModel).loadOneSync(
+					this.loadOneSync(
 						loadOneAction.info,
 						loadOneAction.loadTime,
 						loadOneAction.extra,
-						false,
+						null,
 						false,
 						state || {}
 					);
@@ -948,16 +977,15 @@ function createModel<
 				) {
 					const loadManyAction = action as ILoadManyAction<
 						IdKey,
-						IdType,
 						DOC,
 						CRUDActions["loadMany"]
 					>;
-					((this as any) as IModel).loadManySync(
+					this.loadManySync(
 						loadManyAction.infos,
 						loadManyAction.clearOthers,
 						loadManyAction.loadTime,
 						loadManyAction.extras,
-						true,
+						null,
 						false,
 						state || {}
 					);
@@ -969,8 +997,8 @@ function createModel<
 						IdType,
 						CRUDActions["deleteOne"]
 					>;
-					((this as any) as IModel).deleteByIdSync(
-						deleteAction[config.keyOfId],
+					this.deleteByIdSync(
+						(deleteAction[config.keyOfId] as any) as DOC[IdKey],
 						false,
 						state || {}
 					);
@@ -981,20 +1009,16 @@ function createModel<
 						IdType,
 						CRUDActions["deleteMany"]
 					>;
-					((this as any) as IModel).deleteManyByIdsSync(
-						deleteAction.ids,
-						false
-					);
+					this.deleteManyByIdsSync(deleteAction.ids, false);
 				} else if (
 					actionType === config.syncronousCRUDActionTypes.clearAll
 				) {
-					(this as any).clearAllSync(false);
+					this.clearAllSync(false);
 				} else if (
 					actionType === config.syncronousCRUDActionTypes.updateOne
 				) {
 					const updateAction = action as IUpdateOneAction<
 						IdKey,
-						IdType,
 						DOC,
 						CRUDActions["updateOne"]
 					>;
@@ -1009,7 +1033,6 @@ function createModel<
 				) {
 					const updateAction = action as IUpdateManyAction<
 						IdKey,
-						IdType,
 						DOC,
 						CRUDActions["updateMany"]
 					>;

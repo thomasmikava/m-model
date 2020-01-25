@@ -1,5 +1,6 @@
 import { OptionalKeysOtherThan, IAnyObj } from "./generics";
 
+export type IDocument<IdKey extends string> = Record<IdKey, any>;
 export interface ICRUDActionTypes {
 	updateOne: string;
 	updateMany: string;
@@ -12,49 +13,45 @@ export interface ICRUDActionTypes {
 
 export interface IUpdateOneAction<
 	IdKey extends string,
-	IdType extends string | number,
-	T extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	Type extends string
 > {
 	type: Type;
-	info: OptionalKeysOtherThan<T, IdKey>;
+	info: OptionalKeysOtherThan<DOC, IdKey>;
 	extra?: IAnyObj;
 }
 
 export interface IUpdateManyAction<
 	IdKey extends string,
-	IdType extends string | number,
-	T extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	Type extends string
 > {
 	type: Type;
-	infos: OptionalKeysOtherThan<T, IdKey>[];
+	infos: OptionalKeysOtherThan<DOC, IdKey>[];
 	extras?: IAnyObj[];
 }
 
 export interface ILoadOneAction<
 	IdKey extends string,
-	IdType extends string | number,
-	T extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	Type extends string
 > {
 	type: Type;
-	info: T;
+	info: DOC;
 	loadTime: Date;
 	extra?: IAnyObj;
 }
 
 export interface ILoadManyAction<
 	IdKey extends string,
-	IdType extends string | number,
-	T extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	Type extends string
 > {
 	type: Type;
-	infos: T[];
+	infos: DOC[];
 	loadTime: Date;
 	extras?: IAnyObj[];
-	clearOthers?: boolean;
+	clearOthers?: null | "replaceAll" | DOC[IdKey][];
 }
 
 export type IDeleteOneAction<
@@ -79,32 +76,22 @@ export interface IClearAllAction<Type extends string> {
 
 export type ICRUDActionObjs<
 	IdKey extends string,
-	IdType extends string | number,
-	T extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	TYPES extends ICRUDActionTypes = ICRUDActionTypes
 > =
-	| IUpdateOneAction<IdKey, IdType, T, TYPES["updateOne"]>
-	| ILoadManyAction<IdKey, IdType, T, TYPES["updateMany"]>
-	| ILoadOneAction<IdKey, IdType, T, TYPES["loadOne"]>
-	| ILoadManyAction<IdKey, IdType, T, TYPES["loadMany"]>
-	| IDeleteOneAction<IdKey, IdType, TYPES["deleteOne"]>
-	| IDeleteManyAction<IdType, TYPES["deleteMany"]>
+	| IUpdateOneAction<IdKey, DOC, TYPES["updateOne"]>
+	| ILoadManyAction<IdKey, DOC, TYPES["updateMany"]>
+	| ILoadOneAction<IdKey, DOC, TYPES["loadOne"]>
+	| ILoadManyAction<IdKey, DOC, TYPES["loadMany"]>
+	| IDeleteOneAction<IdKey, DOC[IdKey], TYPES["deleteOne"]>
+	| IDeleteManyAction<DOC[IdKey], TYPES["deleteMany"]>
 	| IClearAllAction<TYPES["clearAll"]>;
-
-export type IDocument<
-	IdKey extends string,
-	IdType extends string | number
-> = Record<IdKey, IdType>;
 
 export function createCRUDActions<
 	IdKey extends string,
-	IdType extends string | number,
-	DOC extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	Types extends ICRUDActionTypes
->(
-	actionTypes: Types,
-	keyOfId: IdKey
-): ICRUDSyncActions<IdKey, IdType, DOC, Types> {
+>(actionTypes: Types, keyOfId: IdKey): ICRUDSyncActions<IdKey, DOC, Types> {
 	return {
 		updateOne: (info, extra?: IAnyObj) => ({
 			type: actionTypes.updateOne,
@@ -115,7 +102,6 @@ export function createCRUDActions<
 			docs,
 			extras?: IUpdateManyAction<
 				IdKey,
-				IdType,
 				DOC,
 				Types["updateMany"]
 			>["extras"]
@@ -132,7 +118,7 @@ export function createCRUDActions<
 		}),
 		loadMany: (
 			infos,
-			clearOthers?: boolean,
+			clearOthers?: null | "replaceAll" | DOC[IdKey][],
 			loadTime: Date = new Date(),
 			extras?: IAnyObj[]
 		) => ({
@@ -146,7 +132,7 @@ export function createCRUDActions<
 			({
 				type: actionTypes.deleteOne,
 				[keyOfId]: id,
-			} as IDeleteOneAction<IdKey, IdType, Types["deleteOne"]>),
+			} as IDeleteOneAction<IdKey, DOC[IdKey], Types["deleteOne"]>),
 		deleteMany: ids => ({
 			type: actionTypes.deleteMany,
 			ids,
@@ -159,40 +145,34 @@ export function createCRUDActions<
 
 export interface ICRUDSyncActions<
 	IdKey extends string,
-	IdType extends string | number,
-	DOC extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	Types extends ICRUDActionTypes
 > {
 	updateOne: (
-		info: IUpdateOneAction<IdKey, IdType, DOC, Types["updateOne"]>["info"],
+		info: IUpdateOneAction<IdKey, DOC, Types["updateOne"]>["info"],
 		extra?: IAnyObj
-	) => IUpdateOneAction<IdKey, IdType, DOC, Types["updateOne"]>;
+	) => IUpdateOneAction<IdKey, DOC, Types["updateOne"]>;
 	updateMany: (
-		docs: IUpdateManyAction<
-			IdKey,
-			IdType,
-			DOC,
-			Types["updateMany"]
-		>["infos"],
+		docs: IUpdateManyAction<IdKey, DOC, Types["updateMany"]>["infos"],
 		extras?: IAnyObj[]
-	) => IUpdateManyAction<IdKey, IdType, DOC, Types["updateMany"]>;
+	) => IUpdateManyAction<IdKey, DOC, Types["updateMany"]>;
 	loadOne: (
 		info: DOC,
 		loadTime?: Date,
 		extra?: IAnyObj
-	) => ILoadOneAction<IdKey, IdType, DOC, Types["loadOne"]>;
+	) => ILoadOneAction<IdKey, DOC, Types["loadOne"]>;
 	loadMany: (
 		infos: DOC[],
-		clearOthers?: boolean,
+		clearOthers?: null | "replaceAll" | DOC[IdKey][],
 		loadTime?: Date,
 		extras?: IAnyObj[]
-	) => ILoadManyAction<IdKey, IdType, DOC, Types["loadMany"]>;
+	) => ILoadManyAction<IdKey, DOC, Types["loadMany"]>;
 	deleteOne: (
-		id: IdType
-	) => IDeleteOneAction<IdKey, IdType, Types["deleteOne"]>;
+		id: DOC[IdKey]
+	) => IDeleteOneAction<IdKey, DOC[IdKey], Types["deleteOne"]>;
 	deleteMany: (
-		ids: IdType[]
-	) => IDeleteManyAction<IdType, Types["deleteMany"]>;
+		ids: DOC[IdKey][]
+	) => IDeleteManyAction<DOC[IdKey], Types["deleteMany"]>;
 	clearAll: () => IClearAllAction<Types["clearAll"]>;
 }
 

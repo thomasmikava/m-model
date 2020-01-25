@@ -12,8 +12,7 @@ import {
 
 function createCRUDReducer<
 	IdKey extends string,
-	IdType extends string | number,
-	DOC extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	IState extends Record<
 		string | number,
 		{ info: DOC; loadTime?: Date } | undefined
@@ -21,12 +20,11 @@ function createCRUDReducer<
 >(actionTypes: ICRUDActionTypes, keyOfId: IdKey) {
 	return function getNewState(
 		state: IState = {} as any,
-		origianalAction: ICRUDActionObjs<IdKey, IdType, DOC>
+		origianalAction: ICRUDActionObjs<IdKey, DOC>
 	) {
 		if (origianalAction.type === actionTypes.updateOne) {
 			const action = origianalAction as IUpdateOneAction<
 				IdKey,
-				IdType,
 				DOC,
 				string
 			>;
@@ -46,7 +44,6 @@ function createCRUDReducer<
 		} else if (origianalAction.type === actionTypes.updateMany) {
 			const action = origianalAction as IUpdateManyAction<
 				IdKey,
-				IdType,
 				DOC,
 				string
 			>;
@@ -65,7 +62,6 @@ function createCRUDReducer<
 		} else if (origianalAction.type === actionTypes.loadOne) {
 			const action = origianalAction as ILoadOneAction<
 				IdKey,
-				IdType,
 				DOC,
 				string
 			>;
@@ -73,7 +69,7 @@ function createCRUDReducer<
 				...state,
 				[action.info[keyOfId as any]]: {
 					...state[action.info[keyOfId as any]],
-					loadTime: action.loadTime,
+					loadTime: new Date(action.loadTime),
 					...action.extra,
 					info: action.info,
 				},
@@ -81,18 +77,23 @@ function createCRUDReducer<
 		} else if (origianalAction.type === actionTypes.loadMany) {
 			const action = origianalAction as ILoadManyAction<
 				IdKey,
-				IdType,
 				DOC,
 				string
 			>;
-			const newState1 = action.clearOthers
-				? {}
-				: {
-						...state,
-				  };
+			const newState1 =
+				action.clearOthers === "replaceAll"
+					? ({} as IState)
+					: {
+							...state,
+					  };
+			if (Array.isArray(action.clearOthers)) {
+				for (const id of action.clearOthers) {
+					delete newState1[id];
+				}
+			}
 			action.infos.forEach((c, i) => {
 				newState1[c[keyOfId as any]] = {
-					loadTime: action.loadTime,
+					loadTime: new Date(action.loadTime),
 					...(action.extras && action.extras[i]),
 					info: c,
 				};
@@ -101,14 +102,17 @@ function createCRUDReducer<
 		} else if (origianalAction.type === actionTypes.deleteOne) {
 			const action = origianalAction as IDeleteOneAction<
 				IdKey,
-				IdType,
+				DOC[IdKey],
 				string
 			>;
 			const newState = { ...state };
 			delete newState[action[keyOfId as any]];
 			return newState;
 		} else if (origianalAction.type === actionTypes.deleteMany) {
-			const action = origianalAction as IDeleteManyAction<IdType, string>;
+			const action = origianalAction as IDeleteManyAction<
+				DOC[IdKey],
+				string
+			>;
 			const newState = { ...state };
 			for (const id of action.ids) {
 				delete newState[id];

@@ -24,18 +24,16 @@ export interface Dispatch<A extends Action = AnyAction> {
 
 export type RawInstances<
 	IdKey extends string,
-	IdType extends string | number,
-	DOC extends IDocument<IdKey, IdType>
+	DOC extends IDocument<IdKey>
 > = Record<any, IStoreDocInstance<DOC> | undefined>;
 
 export interface IModelConfig<
 	IdKey extends string,
-	IdType extends string | number,
-	DOC extends IDocument<IdKey, IdType>,
+	DOC extends IDocument<IdKey>,
 	CRUDActions extends ICRUDActionTypes
 > {
 	keyOfId: IdKey;
-	getInstances: () => RawInstances<IdKey, IdType, DOC> | undefined;
+	getInstances: () => RawInstances<IdKey, DOC> | undefined;
 	dispatch: Dispatch<AnyAction>;
 	subscribe: (listener: () => void) => Unsubscribe;
 	loadInstancesFromStorage: () => {

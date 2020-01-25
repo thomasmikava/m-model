@@ -34,7 +34,7 @@ export const getDefaultCRUDActionTypes = (
 
 export const getDefaultReducer = <
 	ModelType extends IModel,
-	IState extends RawInstances<any, any, any> = RawInstances<any, any, any>,
+	IState extends RawInstances<any, any> = RawInstances<any, any>,
 	IActions extends { type: string } = { type: string }
 >(
 	storageSettings: IStorageSettings,

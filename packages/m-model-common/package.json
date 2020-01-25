@@ -1,6 +1,6 @@
 {
   "name": "m-model-common",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -16,6 +16,9 @@
   "keywords": [],
   "author": "Temuri Mikava",
   "license": "MIT",
+  "dependencies": {
+    "m-model-core": "^0.0.4"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.17.0",
     "@typescript-eslint/parser": "^2.17.0",
@@ -32,8 +35,5 @@
   "homepage": "https://github.com/thomasmikava/m-model.git",
   "files": [
     "lib/**/*"
-  ],
-  "dependencies": {
-    "m-model-core": "^0.0.3"
-  }
+  ]
 }
