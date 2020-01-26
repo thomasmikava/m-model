@@ -1,6 +1,6 @@
 {
   "name": "m-model-joi",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -17,8 +17,8 @@
   "author": "Temuri Mikava",
   "license": "MIT",
   "dependencies": {
-    "m-model-common": "^0.0.5",
-    "m-model-core": "^0.0.4"
+    "m-model-common": "^0.0.6",
+    "m-model-core": "^0.0.5"
   },
   "peerDependencies": {
     "@hapi/joi": ">=15.0.1"
