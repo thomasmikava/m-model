@@ -27,7 +27,6 @@ import {
 	QueryOptions,
 	Query,
 } from "./model-types";
-import { defaultSpecialActionKeyOfOtherTabsActions } from "./storage";
 
 function createModel<
 	IdKey extends string,
@@ -950,95 +949,84 @@ function createModel<
 		static reducer<T extends ModelInstance<DOC>>(
 			this: ConstructorType<T>,
 			state: IStoreInstances<DOC> | undefined,
-			action: AnyAction
+			action: AnyAction,
+			isExternalAction?: boolean
 		): IStoreInstances<DOC> {
 			const newState = crudReducer(state, action as any);
-			if (
-				!config.storageSettings ||
-				!config.storageSettings.spreadActionsToOtherTabs
-			) {
-				return newState;
-			}
-			const isActionOfAnotherTab =
-				(action as any)[
-					config.storageSettings.specialActionKeyOfOtherTabsActions ||
-						defaultSpecialActionKeyOfOtherTabsActions
-				] !== undefined;
-			if (isActionOfAnotherTab) {
-				const actionType = action.type as any;
-				if (actionType === config.actionTypes.loadOne) {
-					const loadOneAction = action as ILoadOneAction<
-						IdKey,
-						DOC,
-						CRUDActions["loadOne"]
-					>;
-					this.loadOneSync(
-						loadOneAction.info,
-						loadOneAction.loadTime,
-						loadOneAction.extra,
-						null,
-						false,
-						state || {}
-					);
-				} else if (actionType === config.actionTypes.loadMany) {
-					const loadManyAction = action as ILoadManyAction<
-						IdKey,
-						DOC,
-						CRUDActions["loadMany"]
-					>;
-					this.loadManySync(
-						loadManyAction.infos,
-						loadManyAction.clearOthers,
-						loadManyAction.loadTime,
-						loadManyAction.extras,
-						null,
-						false,
-						state || {}
-					);
-				} else if (actionType === config.actionTypes.deleteOne) {
-					const deleteAction = action as IDeleteOneAction<
-						IdKey,
-						IdType,
-						CRUDActions["deleteOne"]
-					>;
-					this.deleteByIdSync(
-						(deleteAction[config.keyOfId] as any) as DOC[IdKey],
-						false,
-						state || {}
-					);
-				} else if (actionType === config.actionTypes.deleteMany) {
-					const deleteAction = action as IDeleteManyAction<
-						IdType,
-						CRUDActions["deleteMany"]
-					>;
-					this.deleteManyByIdsSync(deleteAction.ids, false);
-				} else if (actionType === config.actionTypes.clearAll) {
-					this.clearAllSync(false);
-				} else if (actionType === config.actionTypes.updateOne) {
-					const updateAction = action as IUpdateOneAction<
-						IdKey,
-						DOC,
-						CRUDActions["updateOne"]
-					>;
-					((this as any) as typeof Model).updateByDocSync(
-						updateAction.info,
-						updateAction.extra,
-						false,
-						state || {}
-					);
-				} else if (actionType === config.actionTypes.updateMany) {
-					const updateAction = action as IUpdateManyAction<
-						IdKey,
-						DOC,
-						CRUDActions["updateMany"]
-					>;
-					((this as any) as typeof Model).updateManyByDocsSync(
-						updateAction.infos,
-						updateAction.extras,
-						false,
-						state || {}
-					);
-				}
+			if (!isExternalAction) return newState;
+			const actionType = action.type as any;
+			if (actionType === config.actionTypes.loadOne) {
+				const loadOneAction = action as ILoadOneAction<
+					IdKey,
+					DOC,
+					CRUDActions["loadOne"]
+				>;
+				this.loadOneSync(
+					loadOneAction.info,
+					loadOneAction.loadTime,
+					loadOneAction.extra,
+					null,
+					false,
+					state || {}
+				);
+			} else if (actionType === config.actionTypes.loadMany) {
+				const loadManyAction = action as ILoadManyAction<
+					IdKey,
+					DOC,
+					CRUDActions["loadMany"]
+				>;
+				this.loadManySync(
+					loadManyAction.infos,
+					loadManyAction.clearOthers,
+					loadManyAction.loadTime,
+					loadManyAction.extras,
+					null,
+					false,
+					state || {}
+				);
+			} else if (actionType === config.actionTypes.deleteOne) {
+				const deleteAction = action as IDeleteOneAction<
+					IdKey,
+					IdType,
+					CRUDActions["deleteOne"]
+				>;
+				this.deleteByIdSync(
+					(deleteAction[config.keyOfId] as any) as DOC[IdKey],
+					false,
+					state || {}
+				);
+			} else if (actionType === config.actionTypes.deleteMany) {
+				const deleteAction = action as IDeleteManyAction<
+					IdType,
+					CRUDActions["deleteMany"]
+				>;
+				this.deleteManyByIdsSync(deleteAction.ids, false);
+			} else if (actionType === config.actionTypes.clearAll) {
+				this.clearAllSync(false);
+			} else if (actionType === config.actionTypes.updateOne) {
+				const updateAction = action as IUpdateOneAction<
+					IdKey,
+					DOC,
+					CRUDActions["updateOne"]
+				>;
+				((this as any) as typeof Model).updateByDocSync(
+					updateAction.info,
+					updateAction.extra,
+					false,
+					state || {}
+				);
+			} else if (actionType === config.actionTypes.updateMany) {
+				const updateAction = action as IUpdateManyAction<
+					IdKey,
+					DOC,
+					CRUDActions["updateMany"]
+				>;
+				((this as any) as typeof Model).updateManyByDocsSync(
+					updateAction.infos,
+					updateAction.extras,
+					false,
+					state || {}
+				);
 			}
 			return newState;
 		}

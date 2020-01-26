@@ -46,10 +46,6 @@ export interface IModelConfig<
 		fields: (keyof DOC)[];
 		unique?: boolean;
 	}[];
-	storageSettings?: {
-		spreadActionsToOtherTabs?: boolean;
-		specialActionKeyOfOtherTabsActions?: string;
-	};
 	timestamps?: {
 		createdAt?: GetKeysOfType<DOC, Date>;
 		updatedAt?: GetKeysOfType<DOC, Date>;

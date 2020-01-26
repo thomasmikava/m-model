@@ -1,14 +1,12 @@
 import { IModel, RawInstances } from "m-model-core";
-import { combineReducers } from "./combine-reducers";
+import { mergeReducersWithStorage } from "./merge-reducers";
 import { IStorage, IStorageSettings } from "./storage";
 
 export const getDefaultStorageSettings = (
 	itemName: string,
-	metaInformationName: string | null,
 	storage: IStorage = localStorage
 ): IStorageSettings => ({
 	itemName,
-	metaInformationName,
 	storage,
 	updateStorageAfterChange: true,
 	spreadActionsToOtherTabs: true,
@@ -22,13 +20,26 @@ export const getDefaultReducer = <
 	storageSettings: IStorageSettings,
 	getModel: () => ModelType
 ) => {
-	return combineReducers<IState, IActions>({
+	return mergeReducersWithStorage<IState, IActions>({
 		storageSettings,
 		reducers: [
-			(state = {} as IState, action) => {
+			(state = {} as IState, action: IActions) => {
 				try {
 					const Model = getModel();
-					return Model.reducer(state as any, action) as IState;
+					let isExternalAction = false;
+					if (
+						storageSettings.specialActionKeyOfOtherTabsActions &&
+						action[
+							storageSettings.specialActionKeyOfOtherTabsActions
+						]
+					) {
+						isExternalAction = true;
+					}
+					return Model.reducer(
+						state as any,
+						action,
+						isExternalAction
+					) as IState;
 				} catch (e) {
 					return state;
 				}

@@ -246,7 +246,8 @@ interface ModelClassGeneral<
 	reducer<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, DOC, CRUDActions, T>,
 		state: IStoreInstances<DOC> | undefined,
-		action: AnyAction
+		action: AnyAction,
+		isExternalAction?: boolean
 	): IStoreInstances<DOC>;
 }
 

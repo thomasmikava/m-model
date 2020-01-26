@@ -1,5 +1,8 @@
 import { IStoreInstances } from "m-model-core";
 
+export const defaultSpecialActionKeyOfOtherTabsActions = "$$randomKey$$";
+export const defaultSpecialItemNameOfOtherTabsActions = "$$lastAction$$";
+
 export interface IStorage {
 	getItem(key: string): null | string;
 	setItem(key: string, value: string): void;
@@ -9,7 +12,6 @@ export interface IStorage {
 export interface IStorageSettings {
 	storage: IStorage;
 	itemName: string;
-	metaInformationName: string | null;
 	updateStorageAfterChange: boolean;
 	spreadActionsToOtherTabs: boolean;
 	specialActionKeyOfOtherTabsActions?: string;
@@ -96,3 +98,12 @@ export const filterByLoadTime = (
 		return Date.now() - loadTime.getTime() <= maxTimeToPass;
 	};
 };
+
+const reISO = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*))(?:Z|(\+|-)([\d|:]*))?$/;
+export function jsonDateParser(key: any, value: any) {
+	if (typeof value === "string") {
+		const a = reISO.exec(value);
+		if (a) return new Date(value);
+	}
+	return value;
+}

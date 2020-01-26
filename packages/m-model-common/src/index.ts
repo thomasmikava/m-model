@@ -1,4 +1,4 @@
-import { combineReducers } from "./combine-reducers";
+import { mergeReducersWithStorage } from "./merge-reducers";
 import { getDefaultStorageSettings, getDefaultReducer } from "./defaults";
 import {
 	MetaInformation,
@@ -11,10 +11,14 @@ import {
 	FakeStorage,
 	loadFromStorage,
 	filterByLoadTime,
+	defaultSpecialActionKeyOfOtherTabsActions,
+	defaultSpecialItemNameOfOtherTabsActions,
+	jsonDateParser,
 } from "./storage";
+import { handleActionOfOtherTab } from "./tabs";
 
 export {
-	combineReducers,
+	mergeReducersWithStorage,
 	getDefaultStorageSettings,
 	getDefaultReducer,
 	MetaInformation,
@@ -25,4 +29,8 @@ export {
 	loadFromStorage,
 	filterByLoadTime,
 	IMetaInfo,
+	defaultSpecialActionKeyOfOtherTabsActions,
+	defaultSpecialItemNameOfOtherTabsActions,
+	handleActionOfOtherTab,
+	jsonDateParser,
 };

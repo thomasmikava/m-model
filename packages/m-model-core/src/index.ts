@@ -13,6 +13,7 @@ import {
 	IModelConfig,
 	modelSymbols,
 	IStoreInstances,
+	Dispatch,
 } from "./main-types";
 import {
 	ModelInstance,
@@ -24,11 +25,7 @@ import {
 	ModelIdKey,
 	ModelDocType,
 } from "./model-types";
-import {
-	rawInstancesToArray,
-	defaultSpecialActionKeyOfOtherTabsActions,
-	defaultSpecialItemNameOfOtherTabsActions,
-} from "./storage";
+import { rawInstancesToArray } from "./storage";
 
 export {
 	createModel,
@@ -52,7 +49,6 @@ export {
 	rawInstancesToArray,
 	IStoreInstances,
 	IModel,
-	defaultSpecialActionKeyOfOtherTabsActions,
-	defaultSpecialItemNameOfOtherTabsActions,
 	createCRUDActionTypes,
+	Dispatch,
 };

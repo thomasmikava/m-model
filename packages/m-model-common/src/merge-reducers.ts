@@ -1,8 +1,8 @@
 import {
+	IStorageSettings,
 	defaultSpecialActionKeyOfOtherTabsActions,
 	defaultSpecialItemNameOfOtherTabsActions,
-} from "m-model-core";
-import { IStorageSettings } from "./storage";
+} from "./storage";
 
 interface IReducersConfig<
 	IState extends Record<string | number, {} | undefined>,
@@ -18,7 +18,7 @@ interface IReducersConfig<
 	specialKeysForErasing?: string[];
 }
 
-export function combineReducers<
+export function mergeReducersWithStorage<
 	IState extends Record<any, {} | undefined>,
 	IActions extends { type: string }
 >(config: IReducersConfig<IState, IActions>) {

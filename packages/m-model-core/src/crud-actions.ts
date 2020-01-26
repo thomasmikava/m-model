@@ -182,8 +182,9 @@ export const createCRUDActionTypes = (
 	singularName: string,
 	pluralName?: string
 ): ICRUDActionTypes => {
+	singularName = singularName.toUpperCase();
 	if (!pluralName) {
-		pluralName = singularName + "S";
+		pluralName = getPluralName(singularName);
 	}
 	return {
 		updateOne: `UPDATE_${singularName}`,
@@ -194,4 +195,37 @@ export const createCRUDActionTypes = (
 		deleteMany: `DELETE_MANY_${pluralName}`,
 		clearAll: `CLEAR_${pluralName}`,
 	};
+};
+
+const getPluralName = (singular: string) => {
+	if (singular.length === 0) return "S";
+	if (singular[singular.length - 1] === "Y") {
+		if (singular.length >= 2 && isVowel(singular[singular.length - 2])) {
+			return singular + "S";
+		}
+		return singular.substr(0, singular.length - 1) + "IES";
+	}
+	const lastLetter = singular[singular.length - 1];
+	const last2Letters = singular.substr(singular.length - 2);
+	if (
+		lastLetter === "S" ||
+		lastLetter === "Z" ||
+		lastLetter === "X" ||
+		last2Letters === "SS" ||
+		last2Letters === "SH" ||
+		last2Letters === "CH"
+	) {
+		return singular + "ES";
+	}
+	return singular + "S";
+};
+
+const isVowel = (letter: string) => {
+	return (
+		letter === "A" ||
+		letter === "E" ||
+		letter === "I" ||
+		letter === "O" ||
+		letter === "U"
+	);
 };
