@@ -75,8 +75,18 @@ And after creation of store, you can simply call `initialize` method to load doc
 ```ts
 Book.initialize();
 ```
+Refreshing the browser will load the previously loaded documents in model after `initialize` method is invoked.
 
-Voilà! Updating/saving any data instance in one tab will be perceived by other models in other tabs. Refreshing the browser will load the previously loaded documents in model after `initialize` method is invoked.
+Now, to listen changes made in other tabs, simply add those lines once for every store (not for every model)
+```ts
+import { handleActionOfOtherTab } from "m-model-common";
+
+window.addEventListener("storage", e => { // listen to localStorage change
+	handleActionOfOtherTab(e, store.dispatch);
+});
+```
+
+Voilà! Updating/saving any data instance in one tab will be perceived by other models in other tabs.
 
 
 ## Extra
