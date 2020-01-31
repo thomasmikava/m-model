@@ -27,6 +27,7 @@ import {
 	QueryOptions,
 	Query,
 } from "./model-types";
+import { getDefaultTimeStamps, getDefaultSort } from "./utils";
 
 function createModel<
 	IdKey extends string,
@@ -37,6 +38,11 @@ function createModel<
 	const actions = createCRUDActions<IdKey, DOC, CRUDActions>(
 		config.actionTypes,
 		config.keyOfId
+	);
+
+	const timestamps = getDefaultTimeStamps<IdKey, DOC>(
+		config.timestamps,
+		config.dockeys
 	);
 
 	const crudReducer = createCRUDReducer<IdKey, DOC, IStoreInstances<DOC>>(
@@ -148,26 +154,20 @@ function createModel<
 
 		/* protected */ static addTimestampsToDoc(doc: DOC): DOC {
 			if (
-				!config.timestamps ||
-				(!config.timestamps.createdAt && !config.timestamps.updatedAt)
+				!timestamps ||
+				(!timestamps.createdAt && !timestamps.updatedAt)
 			) {
 				return doc;
 			}
-			if (
-				!config.timestamps.updatedAt &&
-				doc[config.timestamps.createdAt!]
-			) {
+			if (!timestamps.updatedAt && doc[timestamps.createdAt!]) {
 				return doc;
 			}
 			const newDoc = { ...doc };
-			if (
-				config.timestamps.createdAt &&
-				!newDoc[config.timestamps.createdAt]
-			) {
-				newDoc[config.timestamps.createdAt] = new Date() as any;
+			if (timestamps.createdAt && !newDoc[timestamps.createdAt]) {
+				newDoc[timestamps.createdAt] = new Date() as any;
 			}
-			if (config.timestamps.updatedAt) {
-				newDoc[config.timestamps.updatedAt] = new Date() as any;
+			if (timestamps.updatedAt) {
+				newDoc[timestamps.updatedAt] = new Date() as any;
 			}
 			return newDoc;
 		}
@@ -386,6 +386,13 @@ function createModel<
 				const instance = new this(obj.info);
 				objs.push(instance);
 			}
+			if (options && options.$sort) {
+				if (typeof options.$sort === "function") {
+					objs.sort(options.$sort);
+				} else {
+					objs.sort(getDefaultSort(options.$sort));
+				}
+			}
 			return objs as T[];
 		}
 
@@ -401,8 +408,8 @@ function createModel<
 			for (const doc of docs) {
 				let oldInstance: DOC | empty = empty;
 				const document =
-					config.timestamps && config.timestamps.updatedAt
-						? { ...doc, [config.timestamps.updatedAt]: new Date() }
+					timestamps && timestamps.updatedAt
+						? { ...doc, [timestamps.updatedAt]: new Date() }
 						: doc;
 				if (instances && instances[doc[config.keyOfId]]) {
 					oldInstance = instances[document[config.keyOfId]]!.info;
@@ -740,8 +747,8 @@ function createModel<
 		) {
 			if (!instances) instances = config.getInstances();
 			const document =
-				config.timestamps && config.timestamps.updatedAt
-					? { ...doc, [config.timestamps.updatedAt]: new Date() }
+				timestamps && timestamps.updatedAt
+					? { ...doc, [timestamps.updatedAt]: new Date() }
 					: doc;
 			let oldInstance: DOC | empty = empty;
 			if (instances && instances[document[config.keyOfId]]) {

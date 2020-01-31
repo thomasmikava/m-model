@@ -51,7 +51,7 @@ interface ModelClassGeneral<
 		DOC,
 		CRUDActions
 	>;
-	/* protected  */ dockeys: (keyof DOC)[];
+	/* protected  */ dockeys: readonly (keyof DOC)[];
 
 	findByIdSync<T extends ModelInstance<DOC>>(
 		this: ConstructorOf<IdKey, DOC, CRUDActions, T>,
@@ -280,8 +280,13 @@ export type ModelDocType<
 > = ModelType[typeof modelSymbols["DocType"]];
 
 export interface QueryOptions<DOC extends {}> {
-	$hint?: any;
-	sort?: { [key in keyof DOC]: 1 | -1 };
+	$hint?: {
+		fields: (keyof DOC)[];
+		unique?: boolean;
+	};
+	$sort?:
+		| { [key in keyof DOC]?: 1 | -1 }
+		| ((doc1: DOC, doc2: DOC) => number);
 	raw?: boolean;
 }
 export type Query<DOC extends {}> = Partial<DOC>;

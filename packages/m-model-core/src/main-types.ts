@@ -30,7 +30,7 @@ export type RawInstances<
 export interface IModelConfig<
 	IdKey extends string,
 	DOC extends IDocument<IdKey>,
-	CRUDActions extends ICRUDActionTypes
+	CRUDActions extends ICRUDActionTypes = ICRUDActionTypes
 > {
 	keyOfId: IdKey;
 	getInstances: () => RawInstances<IdKey, DOC> | undefined;
@@ -41,15 +41,17 @@ export interface IModelConfig<
 		loadedAll: boolean;
 	};
 	actionTypes: CRUDActions;
-	dockeys: (keyof DOC)[];
-	indices?: readonly {
-		fields: (keyof DOC)[];
-		unique?: boolean;
-	}[];
+	dockeys: readonly (keyof DOC)[];
+	indices?:
+		| readonly {
+				fields: (keyof DOC)[];
+				unique?: boolean;
+		  }[]
+		| null;
 	timestamps?: {
 		createdAt?: GetKeysOfType<DOC, Date>;
 		updatedAt?: GetKeysOfType<DOC, Date>;
-	};
+	} | null;
 }
 
 const initialDoc = Symbol("initial");

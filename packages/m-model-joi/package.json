@@ -1,6 +1,6 @@
 {
   "name": "m-model-joi",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -16,11 +16,9 @@
   "keywords": [],
   "author": "Temuri Mikava",
   "license": "MIT",
-  "dependencies": {
-    "m-model-common": "^0.0.6",
-    "m-model-core": "^0.0.5"
-  },
   "peerDependencies": {
+    "m-model-common": "^0.0.9",
+    "m-model-core": "^0.0.6",
     "@hapi/joi": ">=15.0.1"
   },
   "devDependencies": {
@@ -32,7 +30,9 @@
     "eslint-plugin-prettier": "^3.1.2",
     "prettier": "^1.19.1",
     "typescript": "^3.7.5",
-    "@hapi/joi": "^15.0.1"
+    "@hapi/joi": "^15.0.1",
+    "m-model-common": "latest",
+    "m-model-core": "latest"
   },
   "publishConfig": {
     "access": "public"
