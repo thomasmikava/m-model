@@ -12,6 +12,7 @@ export class MetaInformation<DOC extends {}> implements IMetaInfo<DOC> {
 	private readonly storage: IStorage;
 	private readonly storageKey: string;
 	private readonly validate?: (doc: Record<any, any>) => DOC;
+	private callbacks: { uniqueId: number; cb: any }[] = [];
 
 	constructor(
 		initialData: DOC,
@@ -28,6 +29,7 @@ export class MetaInformation<DOC extends {}> implements IMetaInfo<DOC> {
 	setItem<K extends keyof DOC>(key: K, value: DOC[K]) {
 		(this.data[key] as any) = value;
 		this.storage.setItem(this.storageKey, JSON.stringify(this.data));
+		this.callAll(this.data);
 	}
 
 	clearStorage() {
@@ -48,7 +50,25 @@ export class MetaInformation<DOC extends {}> implements IMetaInfo<DOC> {
 		const validatedValue = this.validate ? this.validate(data) : data;
 		this.storage.setItem(this.storageKey, JSON.stringify(validatedValue));
 		(this.data as any) = validatedValue;
+		this.callAll(validatedValue);
 		return validatedValue;
+	}
+
+	subscribeDataChange(cb: (data: Readonly<DOC>) => void): () => void {
+		const uniqueId = Math.random();
+		this.callbacks.push({ uniqueId, cb });
+		return () => {
+			this.callbacks = this.callbacks.filter(
+				e => e.cb === cb && e.uniqueId === uniqueId
+			);
+		};
+	}
+
+	private callAll(data: Readonly<DOC>) {
+		const callbacks = this.callbacks;
+		for (let i = 0; i < callbacks.length; i++) {
+			callbacks[i].cb(data);
+		}
 	}
 }
 
