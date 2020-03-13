@@ -67,7 +67,7 @@ export function useModelDocByQuery<ModelType extends IModel>(
 	Model: ModelType,
 	query: Query<ModelDocType<ModelType>> | null,
 	queryOptions?: QueryOptions<ModelDocType<ModelType>>
-): InstanceType<ModelType> | null | undefined {
+): InstanceType<ModelType> | null {
 	const mountingInfo = useMountingInfo();
 	const [resource, setResource] = useState<InstanceType<ModelType> | null>(
 		query && mountingInfo.isFirstMounting ? Model.findOneSync(query) : null
@@ -102,8 +102,13 @@ export function useModelDocByQuery<ModelType extends IModel>(
 			isCancelled = true;
 			cancelSubscription();
 		};
-	}, [Model, mountingInfo, query, queryOptions]);
-	return !query ? undefined : resource;
+	}, [
+		Model,
+		mountingInfo,
+		JSON.stringify(query),
+		JSON.stringify(queryOptions),
+	]);
+	return !query ? null : resource;
 }
 
 export function useModelDocsByQuery<ModelType extends IModel>(
@@ -131,21 +136,26 @@ export function useModelDocsByQuery<ModelType extends IModel>(
 		}
 		if (mountingInfo.hasFinishedFirstMountingCycle) {
 			const docs = Model.findManySync(query, queryOptions);
-			setResources(docs);
+			setResources(onlyIfDifferent(docs));
 		}
 		const cancelSubscription = Model.subscribeManyDocsChangeByQuery(
 			query,
 			queryOptions || {},
 			docs => {
 				if (isCancelled) return;
-				setResources(docs);
+				setResources(onlyIfDifferent(docs));
 			}
 		);
 		return () => {
 			isCancelled = true;
 			cancelSubscription();
 		};
-	}, [Model, mountingInfo, query, queryOptions]);
+	}, [
+		Model,
+		mountingInfo,
+		JSON.stringify(query),
+		JSON.stringify(queryOptions),
+	]);
 	return !query ? null : resources;
 }
 export function useModelDocsByIds<ModelType extends IModel>(
@@ -183,14 +193,14 @@ export function useModelDocsByIds<ModelType extends IModel>(
 		}
 		if (mountingInfo.hasFinishedFirstMountingCycle) {
 			const docs = Model.findManyByIdsSync(ids, raw as null);
-			setResources(docs);
+			setResources(onlyIfDifferent(docs));
 		}
 		const cancelSubscription = Model.subscribeManyDocsChangeByIds(
 			ids,
 			raw as null,
 			docs => {
 				if (isCancelled) return;
-				setResources(docs);
+				setResources(onlyIfDifferent(docs));
 			}
 		);
 		return () => {
@@ -200,8 +210,6 @@ export function useModelDocsByIds<ModelType extends IModel>(
 	}, [Model, ids, mountingInfo, raw]);
 	return !ids ? null : resources;
 }
-
-const emptyArr: any[] = [];
 
 export function useModelDocs<ModelType extends IModel>(
 	Model: ModelType,
@@ -216,17 +224,17 @@ export function useModelDocs<ModelType extends IModel>(
 	raw?: null | "raw"
 ): InstanceType<ModelType>[] | ModelDocType<ModelType>[] {
 	const mountingInfo = useMountingInfo();
-	const [resources, setResources] = useState<InstanceType<ModelType>[]>(
-		mountingInfo.isFirstMounting ? Model.getAllSync(raw as null) : emptyArr
+	const [resources, setResources] = useState<InstanceType<ModelType>[]>(() => 
+		Model.getAllSync(raw as null)
 	);
 	useEffect(() => {
 		let isCancelled = false;
 		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			setResources(Model.getAllSync(raw as null));
+			setResources(onlyIfDifferent(Model.getAllSync(raw as null)));
 		}
 		const cancelSubscription = Model.subscribeChange(() => {
 			if (isCancelled) return;
-			setResources(Model.getAllSync(raw as null));
+			setResources(onlyIfDifferent(Model.getAllSync(raw as null)));
 		});
 		return () => {
 			isCancelled = true;
@@ -235,3 +243,13 @@ export function useModelDocs<ModelType extends IModel>(
 	}, [Model, raw]);
 	return resources;
 }
+
+const onlyIfDifferent = <T extends any>(newArr: T[]) => (
+	oldArr: T[] | null | undefined
+): T[] => {
+	if (!oldArr || oldArr.length !== newArr.length) return newArr;
+	for (let i = 0; i < newArr.length; i++) {
+		if (newArr[i] !== oldArr[i]) return newArr;
+	}
+	return oldArr;
+};

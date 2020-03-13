@@ -1,12 +1,13 @@
-import Joi from "@hapi/joi";
-
-export default function validateSchema<T, K extends Joi.Schema>(
-	obj,
-	schema,
-	options
+import { AnySchema, ValidationOptions } from "@hapi/joi";
+export default function validateSchema(
+	obj: any,
+	schema: AnySchema,
+	options: ValidationOptions = {
+		stripUnknown: true,
+	}
 ): any {
-	const validatorResult = Joi.validate(obj, schema, options);
-	if (validatorResult.error !== null || validatorResult.value === undefined) {
+	const validatorResult = schema.validate(obj, options);
+	if (validatorResult.error || validatorResult.value === undefined) {
 		throw validatorResult.error;
 	}
 	const { value } = validatorResult;
