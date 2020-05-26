@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { useMountingInfo } from "./helper-hooks";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
 	IModel,
 	QueryOptions,
@@ -23,44 +22,23 @@ export function useModelDocById<ModelType extends IModel>(
 	id: ModelIdType<ModelType> | null,
 	raw?: null | "raw"
 ): InstanceType<ModelType> | ModelDocType<ModelType> | null {
-	const mountingInfo = useMountingInfo();
-	const [resource, setResource] = useState<InstanceType<ModelType> | null>(
-		id && mountingInfo.isFirstMounting
-			? Model.findByIdSync(id, raw as null)
-			: null
-	);
-	const resourceRef = useRef(resource);
-	resourceRef.current = resource;
+	const [count, setCount] = useState(0);
 	useEffect(() => {
-		let isCancelled = false;
 		if (!id) {
-			if (resourceRef.current) {
-				setResource(null);
-			}
 			return;
 		}
-		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const doc = Model.findByIdSync(id, raw as null);
-			if (resourceRef.current !== doc) {
-				setResource(doc);
+		return Model.subscribeChangeById(
+			id,
+			() => {
+				setCount(x => x + 1);
 			}
-		}
-		const cancelSubscription = Model.subscribeChangeById(id, doc => {
-			if (isCancelled) return;
-			if (resourceRef.current !== doc) {
-				if (doc && raw === "raw") {
-					setResource(doc.toJSON());
-				} else {
-					setResource(doc);
-				}
-			}
-		});
-		return () => {
-			isCancelled = true;
-			cancelSubscription();
-		};
-	}, [Model, id, mountingInfo]);
-	return !id ? null : resource;
+		);
+	}, [Model, id, raw]);
+	
+	return useMemo(() => {
+		if (!id) return null;
+		return Model.findByIdSync(id, raw as null);
+	}, [Model, id, raw, count]);
 }
 
 export function useModelDocByQuery<ModelType extends IModel>(
@@ -68,47 +46,26 @@ export function useModelDocByQuery<ModelType extends IModel>(
 	query: Query<ModelDocType<ModelType>> | null,
 	queryOptions?: QueryOptions<ModelDocType<ModelType>>
 ): InstanceType<ModelType> | null {
-	const mountingInfo = useMountingInfo();
-	const [resource, setResource] = useState<InstanceType<ModelType> | null>(
-		query && mountingInfo.isFirstMounting ? Model.findOneSync(query) : null
-	);
-	const resourceRef = useRef(resource);
-	resourceRef.current = resource;
+	const [count, setCount] = useState(0);
+	const stringifiedQuery = JSON.stringify(query);
+	const stringifiedQueryOptions = JSON.stringify(queryOptions);
 	useEffect(() => {
-		let isCancelled = false;
 		if (!query) {
-			if (resourceRef.current) {
-				setResource(null);
-			}
 			return;
 		}
-		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const doc = Model.findOneSync(query, queryOptions);
-			if (resourceRef.current !== doc) {
-				setResource(doc);
-			}
-		}
-		const cancelSubscription = Model.subscribeOneDocChangeByQuery(
+		return Model.subscribeOneDocChangeByQuery(
 			query,
-			queryOptions,
-			doc => {
-				if (isCancelled) return;
-				if (resourceRef.current !== doc) {
-					setResource(doc);
-				}
+			queryOptions || {},
+			() => {
+				setCount(x => x + 1);
 			}
 		);
-		return () => {
-			isCancelled = true;
-			cancelSubscription();
-		};
-	}, [
-		Model,
-		mountingInfo,
-		JSON.stringify(query),
-		JSON.stringify(queryOptions),
-	]);
-	return !query ? null : resource;
+	}, [Model, stringifiedQuery, stringifiedQueryOptions]);
+	
+	return useMemo(() => {
+		if (!query) return null;
+		return Model.findOneSync(query, queryOptions);
+	}, [Model, stringifiedQuery, stringifiedQueryOptions, count]);
 }
 
 export function useModelDocsByQuery<ModelType extends IModel>(
@@ -116,47 +73,26 @@ export function useModelDocsByQuery<ModelType extends IModel>(
 	query: Query<ModelDocType<ModelType>> | null,
 	queryOptions?: QueryOptions<ModelDocType<ModelType>>
 ): InstanceType<ModelType>[] | null {
-	const mountingInfo = useMountingInfo();
-	const [resources, setResources] = useState<
-		InstanceType<ModelType>[] | null
-	>(
-		query && mountingInfo.isFirstMounting
-			? Model.findManySync(query, queryOptions)
-			: null
-	);
-	const resourceRef = useRef(resources);
-	resourceRef.current = resources;
+	const [count, setCount] = useState(0);
+	const stringifiedQuery = JSON.stringify(query);
+	const stringifiedQueryOptions = JSON.stringify(queryOptions);
 	useEffect(() => {
-		let isCancelled = false;
 		if (!query) {
-			if (resourceRef.current) {
-				setResources(null);
-			}
 			return;
 		}
-		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const docs = Model.findManySync(query, queryOptions);
-			setResources(onlyIfDifferent(docs));
-		}
-		const cancelSubscription = Model.subscribeManyDocsChangeByQuery(
+		return Model.subscribeManyDocsChangeByQuery(
 			query,
 			queryOptions || {},
-			docs => {
-				if (isCancelled) return;
-				setResources(onlyIfDifferent(docs));
+			() => {
+				setCount(x => x + 1);
 			}
 		);
-		return () => {
-			isCancelled = true;
-			cancelSubscription();
-		};
-	}, [
-		Model,
-		mountingInfo,
-		JSON.stringify(query),
-		JSON.stringify(queryOptions),
-	]);
-	return !query ? null : resources;
+	}, [Model, stringifiedQuery, stringifiedQueryOptions]);
+	
+	return useMemo(() => {
+		if (!query) return null;
+		return Model.findManySync(query, queryOptions);
+	}, [Model, stringifiedQuery, stringifiedQueryOptions, count]);
 }
 export function useModelDocsByIds<ModelType extends IModel>(
 	Model: ModelType,
@@ -173,42 +109,25 @@ export function useModelDocsByIds<ModelType extends IModel>(
 	ids: ModelIdType<ModelType>[] | null,
 	raw?: null | "raw"
 ): InstanceType<ModelType>[] | ModelDocType<ModelType>[] | null {
-	const mountingInfo = useMountingInfo();
-	const [resources, setResources] = useState<
-		InstanceType<ModelType>[] | null
-	>(
-		ids && mountingInfo.isFirstMounting
-			? Model.findManyByIdsSync(ids, raw as null)
-			: null
-	);
-	const resourceRef = useRef(resources);
-	resourceRef.current = resources;
+	const [count, setCount] = useState(0);
+	const stringifiedIds = JSON.stringify(ids);
 	useEffect(() => {
-		let isCancelled = false;
 		if (!ids) {
-			if (resourceRef.current) {
-				setResources(null);
-			}
 			return;
 		}
-		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			const docs = Model.findManyByIdsSync(ids, raw as null);
-			setResources(onlyIfDifferent(docs));
-		}
-		const cancelSubscription = Model.subscribeManyDocsChangeByIds(
+		return Model.subscribeManyDocsChangeByIds(
 			ids,
 			raw as null,
-			docs => {
-				if (isCancelled) return;
-				setResources(onlyIfDifferent(docs));
+			() => {
+				setCount(x => x + 1);
 			}
 		);
-		return () => {
-			isCancelled = true;
-			cancelSubscription();
-		};
-	}, [Model, ids, mountingInfo, raw]);
-	return !ids ? null : resources;
+	}, [Model, stringifiedIds, raw]);
+	
+	return useMemo(() => {
+		if (!ids) return null;
+		return Model.findManyByIdsSync(ids, raw as null);
+	}, [Model, stringifiedIds, raw, count]);
 }
 
 export function useModelDocs<ModelType extends IModel>(
@@ -223,33 +142,14 @@ export function useModelDocs<ModelType extends IModel>(
 	Model: ModelType,
 	raw?: null | "raw"
 ): InstanceType<ModelType>[] | ModelDocType<ModelType>[] {
-	const mountingInfo = useMountingInfo();
-	const [resources, setResources] = useState<InstanceType<ModelType>[]>(() => 
-		Model.getAllSync(raw as null)
-	);
+	const [count, setCount] = useState(0);
 	useEffect(() => {
-		let isCancelled = false;
-		if (mountingInfo.hasFinishedFirstMountingCycle) {
-			setResources(onlyIfDifferent(Model.getAllSync(raw as null)));
-		}
-		const cancelSubscription = Model.subscribeChange(() => {
-			if (isCancelled) return;
-			setResources(onlyIfDifferent(Model.getAllSync(raw as null)));
+		return Model.subscribeChange(() => {
+			setCount(x => x + 1);
 		});
-		return () => {
-			isCancelled = true;
-			cancelSubscription();
-		};
 	}, [Model, raw]);
-	return resources;
+	
+	return useMemo(() => {
+		Model.getAllSync(raw as null);
+	}, [Model, raw, count]);
 }
-
-const onlyIfDifferent = <T extends any>(newArr: T[]) => (
-	oldArr: T[] | null | undefined
-): T[] => {
-	if (!oldArr || oldArr.length !== newArr.length) return newArr;
-	for (let i = 0; i < newArr.length; i++) {
-		if (newArr[i] !== oldArr[i]) return newArr;
-	}
-	return oldArr;
-};

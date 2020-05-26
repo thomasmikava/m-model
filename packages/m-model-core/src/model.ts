@@ -731,10 +731,11 @@ function createModel<
 		}
 
 		public static subscribeChange(cb: () => void): () => void {
-			const lastInstances = config.getInstances();
+			let lastInstances = config.getInstances();
 			return this.subscribeStoreChange(() => {
 				const currentInstances = config.getInstances();
 				if (currentInstances === lastInstances) return;
+				lastInstances = currentInstances;
 				cb();
 			});
 		}

@@ -810,17 +810,15 @@ lodash@^4.17.14, lodash@^4.17.15:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
 
-m-model-common@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/m-model-common/-/m-model-common-0.0.5.tgz#9f80047671c1c5a503435c5c13cdc694706943e2"
-  integrity sha512-tgbaDFNJo7bzU1UKUp+5uAmuod+FWyerC3xGs5da1tb8UleXTxEdsEacq0H7uqTlDKy3v4xMynGWqjthZ0S8Ug==
-  dependencies:
-    m-model-core "^0.0.4"
+m-model-common@latest:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/m-model-common/-/m-model-common-0.0.10.tgz#72c6140735aea77d73f2938403fb7d537648395d"
+  integrity sha512-SlolRnrBW5zVbpERdIBH+/5n6EDx9OTsiHqmWpn3mjFM+iNkuhm39UbHTek2ByC+sfkFim6SJx494bW58nbh8Q==
 
-m-model-core@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/m-model-core/-/m-model-core-0.0.4.tgz#a4c6dd3c12c95ef87d003207bb5938cfa72b8b96"
-  integrity sha512-aa5WGTC4JalcDf3u3M5wLjUx6ZYJyz51CJUXCecD7htpqTC6fCRCaeA2BY+xd7dWdP6mg1R7ZfX6ftT4vMQJAQ==
+m-model-core@latest:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/m-model-core/-/m-model-core-0.0.7.tgz#73d7ca5821a33f7c989eff35c1dc2e7445bc645f"
+  integrity sha512-8d1YOYCHNCXBSywOd3HBhJJAmV2SwMIStXpDP58W5A4eoKSpJ/HkZL9wcs+giyI+xsG4o0rpmferR90DyEFU5w==
 
 mimic-fn@^2.1.0:
   version "2.1.0"
