@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
 	IModel,
 	QueryOptions,
@@ -27,14 +27,11 @@ export function useModelDocById<ModelType extends IModel>(
 		if (!id) {
 			return;
 		}
-		return Model.subscribeChangeById(
-			id,
-			() => {
-				setCount(x => x + 1);
-			}
-		);
+		return Model.subscribeChangeById(id, () => {
+			setCount(x => x + 1);
+		});
 	}, [Model, id, raw]);
-	
+
 	return useMemo(() => {
 		if (!id) return null;
 		return Model.findByIdSync(id, raw as null);
@@ -61,7 +58,7 @@ export function useModelDocByQuery<ModelType extends IModel>(
 			}
 		);
 	}, [Model, stringifiedQuery, stringifiedQueryOptions]);
-	
+
 	return useMemo(() => {
 		if (!query) return null;
 		return Model.findOneSync(query, queryOptions);
@@ -88,7 +85,7 @@ export function useModelDocsByQuery<ModelType extends IModel>(
 			}
 		);
 	}, [Model, stringifiedQuery, stringifiedQueryOptions]);
-	
+
 	return useMemo(() => {
 		if (!query) return null;
 		return Model.findManySync(query, queryOptions);
@@ -115,15 +112,11 @@ export function useModelDocsByIds<ModelType extends IModel>(
 		if (!ids) {
 			return;
 		}
-		return Model.subscribeManyDocsChangeByIds(
-			ids,
-			raw as null,
-			() => {
-				setCount(x => x + 1);
-			}
-		);
+		return Model.subscribeManyDocsChangeByIds(ids, raw as null, () => {
+			setCount(x => x + 1);
+		});
 	}, [Model, stringifiedIds, raw]);
-	
+
 	return useMemo(() => {
 		if (!ids) return null;
 		return Model.findManyByIdsSync(ids, raw as null);
@@ -148,8 +141,8 @@ export function useModelDocs<ModelType extends IModel>(
 			setCount(x => x + 1);
 		});
 	}, [Model, raw]);
-	
+
 	return useMemo(() => {
-		Model.getAllSync(raw as null);
+		return Model.getAllSync(raw as null);
 	}, [Model, raw, count]);
 }
