@@ -1,6 +1,6 @@
 {
   "name": "m-model-joi",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -19,7 +19,7 @@
   "peerDependencies": {
     "m-model-common": "^0.0.9",
     "m-model-core": "^0.0.6",
-    "@hapi/joi": ">=15.0.1"
+    "joi": ">=17.1.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.17.0",
@@ -30,7 +30,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "prettier": "^1.19.1",
     "typescript": "^3.7.5",
-    "@hapi/joi": "^15.0.1",
+    "joi": "^17.2.0",
     "m-model-common": "latest",
     "m-model-core": "latest"
   },

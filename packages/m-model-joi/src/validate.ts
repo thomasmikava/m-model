@@ -1,4 +1,5 @@
-import { AnySchema, ValidationOptions } from "@hapi/joi";
+import { AnySchema, ValidationOptions } from "joi";
+
 export default function validateSchema(
 	obj: any,
 	schema: AnySchema,

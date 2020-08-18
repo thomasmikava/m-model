@@ -150,7 +150,7 @@ boss.saveSync();
 ### Our helpful packages for models
 - For easily make your store in sync with respect to other tabs, saving documents in localStorage and easily solving other problems in front-end, please check [m-model-common](https://www.npmjs.com/package/m-model-common) package. 
 - For using optimized **react hooks** for searching documents in model and being reactive, check [m-model-react](https://www.npmjs.com/package/m-model-react)
-- If you use [@hapi/Joi](https://www.npmjs.com/package/@hapi/joi), see [m-model-joi](https://www.npmjs.com/package/m-model-joi) package as it ships with helper functions for validating documents
+- If you use [joi](https://www.npmjs.com/package/joi), see [m-model-joi](https://www.npmjs.com/package/m-model-joi) package as it ships with helper functions for validating documents
 
 ### Subscriptions
 You can subscribe data modification in several ways.
